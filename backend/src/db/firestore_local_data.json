@@ -1,0 +1,290 @@
+{
+  "users": {
+    "1": {
+      "id": 1,
+      "email": "admin@ontime.college",
+      "password_hash": "$2a$10$kLqhz7R.seOLJ7m9J31jOu07zQnxzHSpP1KI/kIQaWmWE2ddW.xbS",
+      "role": "ADMIN",
+      "status": "ACTIVE",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "2": {
+      "id": 2,
+      "email": "staff@ontime.college",
+      "password_hash": "$2a$10$kLqhz7R.seOLJ7m9J31jOuiesK5jahrXtp5jQ.diP0Skm92AXXAwy",
+      "role": "STAFF",
+      "status": "ACTIVE",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "3": {
+      "id": 3,
+      "email": "stu001@ontime.college",
+      "password_hash": "$2a$10$kLqhz7R.seOLJ7m9J31jOuLfE5EQCntIa52wcw5GshhtobqTO.h5O",
+      "role": "STUDENT",
+      "status": "ACTIVE",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:04:09.393Z"
+    },
+    "4": {
+      "id": 4,
+      "email": "stu002@ontime.college",
+      "password_hash": "$2a$10$kLqhz7R.seOLJ7m9J31jOuLfE5EQCntIa52wcw5GshhtobqTO.h5O",
+      "role": "STUDENT",
+      "status": "ACTIVE",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:04:49.465Z"
+    },
+    "5": {
+      "id": 5,
+      "email": "stu003@ontime.college",
+      "password_hash": "$2a$10$kLqhz7R.seOLJ7m9J31jOuLfE5EQCntIa52wcw5GshhtobqTO.h5O",
+      "role": "STUDENT",
+      "status": "ACTIVE",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:05:19.408Z"
+    },
+    "6": {
+      "id": 6,
+      "email": "stu004@ontime.college",
+      "password_hash": "$2a$10$AvJ.r1WDwg22qBQXsOj6U.LyKNYL0eXMxTnZpsaGreHXJE2uYprd6",
+      "role": "STUDENT",
+      "status": "ACTIVE",
+      "created_at": "2026-09-30T15:17:51.469Z",
+      "updated_at": "2026-09-30T15:17:51.469Z"
+    }
+  },
+  "students": {
+    "1": {
+      "id": 1,
+      "student_code": "711224205037",
+      "name": "MURALI KRISHNA M",
+      "register_number": "711224205037",
+      "department": "Information Technology",
+      "year": "3rd Year",
+      "email": "stu001@ontime.college",
+      "phone": "+91 9876543210",
+      "status": "ACTIVE",
+      "user_id": 3,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T09:18:40.985Z"
+    },
+    "2": {
+      "id": 2,
+      "student_code": "STU002",
+      "name": "MURALIKARTHIKEYAN M",
+      "register_number": "711224205038",
+      "department": "Information Technology",
+      "year": "3rd Year",
+      "email": "stu002@ontime.college",
+      "phone": "+91 9876543211",
+      "status": "ACTIVE",
+      "user_id": 4,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:04:49.460Z"
+    },
+    "3": {
+      "id": 3,
+      "student_code": "STU003",
+      "name": "MUKILAVAN K",
+      "register_number": "711224205036",
+      "department": "Information Technology",
+      "year": "3rd Year",
+      "email": "stu003@ontime.college",
+      "phone": "+91 9876543212",
+      "status": "ACTIVE",
+      "user_id": 5,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:05:19.390Z"
+    },
+    "4": {
+      "id": 4,
+      "student_code": "STU004",
+      "name": "RAMSARAN R",
+      "register_number": "711224205046",
+      "department": "Information Technology",
+      "year": "3rd Year",
+      "email": "stu004@ontime.college",
+      "phone": "7904501308",
+      "status": "ACTIVE",
+      "user_id": 6,
+      "created_at": "2026-09-30T15:17:51.473Z",
+      "updated_at": "2026-09-30T15:17:51.473Z"
+    }
+  },
+  "staff": {
+    "1": {
+      "id": 1,
+      "user_id": 2,
+      "name": "Prof. Robert Jenkins",
+      "employee_id": "EMP202401",
+      "department": "Computer Science & Engineering",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    }
+  },
+  "college_settings": {
+    "1": {
+      "id": 1,
+      "reporting_time": "15:00:00",
+      "late_enabled": true,
+      "sessions": [
+        {
+          "name": "1st Period",
+          "time": "09:00:00",
+          "label": "9:00 AM"
+        },
+        {
+          "name": "1st Break",
+          "time": "11:00:00",
+          "label": "11:00 AM"
+        },
+        {
+          "name": "Lunch",
+          "time": "13:15:00",
+          "label": "1:15 PM"
+        },
+        {
+          "name": "2nd Break",
+          "time": "15:00:00",
+          "label": "3:00 PM"
+        }
+      ],
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T15:19:11.099Z"
+    }
+  },
+  "fine_rules": {
+    "1": {
+      "id": 1,
+      "min_minutes": 1,
+      "max_minutes": 10,
+      "fine_amount": "10.00",
+      "active": true,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T08:06:09.754Z"
+    },
+    "2": {
+      "id": 2,
+      "min_minutes": 11,
+      "max_minutes": 20,
+      "fine_amount": "20.00",
+      "active": true,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "3": {
+      "id": 3,
+      "min_minutes": 21,
+      "max_minutes": 30,
+      "fine_amount": "30.00",
+      "active": true,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "4": {
+      "id": 4,
+      "min_minutes": 31,
+      "max_minutes": 60,
+      "fine_amount": "50.00",
+      "active": true,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "5": {
+      "id": 5,
+      "min_minutes": 61,
+      "max_minutes": null,
+      "fine_amount": "100.00",
+      "active": true,
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    }
+  },
+  "late_records": {
+    "1": {
+      "id": 1,
+      "student_id": 1,
+      "staff_id": 1,
+      "date": "2026-09-27",
+      "reporting_time": "09:00:00",
+      "arrival_time": "09:23:00",
+      "late_minutes": 23,
+      "fine_amount": "30.00",
+      "status": "PAID",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "2": {
+      "id": 2,
+      "student_id": 2,
+      "staff_id": 1,
+      "date": "2026-09-27",
+      "reporting_time": "09:00:00",
+      "arrival_time": "09:14:00",
+      "late_minutes": 14,
+      "fine_amount": "20.00",
+      "status": "PAID",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-30T09:05:54.164Z"
+    },
+    "3": {
+      "id": 3,
+      "student_id": 3,
+      "staff_id": 1,
+      "date": "2026-09-29",
+      "reporting_time": "09:00:00",
+      "arrival_time": "13:40:10",
+      "late_minutes": 280,
+      "fine_amount": "100.00",
+      "status": "PAID",
+      "created_at": "2026-09-30T08:10:10.405Z",
+      "updated_at": "2026-09-30T08:13:48.586Z"
+    }
+  },
+  "payments": {
+    "1": {
+      "id": 1,
+      "late_record_id": 1,
+      "student_id": 1,
+      "amount": "30.00",
+      "payment_gateway": "RAZORPAY",
+      "transaction_id": "TXN_DEMO_20260928_001",
+      "gateway_order_id": "order_demo_1001",
+      "gateway_signature": null,
+      "status": "SUCCESS",
+      "paid_at": "2026-09-28T14:06:58.645Z",
+      "created_at": "2026-09-29T14:06:58.645Z",
+      "updated_at": "2026-09-29T14:06:58.645Z"
+    },
+    "2": {
+      "id": 2,
+      "late_record_id": 3,
+      "student_id": 3,
+      "amount": "100.00",
+      "payment_gateway": "RAZORPAY",
+      "transaction_id": "pay_mock_1790756023640_210",
+      "gateway_order_id": "order_test_1790756023619_1496",
+      "gateway_signature": "test_sig_983e789bdcaee05e9ee3f00a2d69f4d35172ef1712cb1f5bb8ba90510b828a42",
+      "status": "SUCCESS",
+      "paid_at": "2026-09-30T08:13:48.586Z",
+      "created_at": "2026-09-30T08:13:43.620Z",
+      "updated_at": "2026-09-30T08:13:48.586Z"
+    },
+    "3": {
+      "id": 3,
+      "late_record_id": 2,
+      "student_id": 2,
+      "amount": "20.00",
+      "payment_gateway": "RAZORPAY",
+      "transaction_id": "pay_mock_1790759151948_101",
+      "gateway_order_id": "order_test_1790759151929_5591",
+      "gateway_signature": "test_sig_e29ccdb1cb98909a086ff95fc18074d14e96a4290fdeb48d4a25d73990dde31e",
+      "status": "SUCCESS",
+      "paid_at": "2026-09-30T09:05:54.164Z",
+      "created_at": "2026-09-30T09:05:51.929Z",
+      "updated_at": "2026-09-30T09:05:54.164Z"
+    }
+  }
+}
