@@ -99,7 +99,12 @@ app.get('/api/git-execute-push', (req, res) => {
       finalStatus
     });
   } catch (err) {
-    res.status(500).json({ error: err.message, stderr: err.stderr?.toString(), stdout: err.stdout?.toString() });
+    res.status(200).json({
+      success: false,
+      error: err.message,
+      stderr: err.stderr ? err.stderr.toString() : null,
+      stdout: err.stdout ? err.stdout.toString() : null
+    });
   }
 });
 
