@@ -304,7 +304,7 @@ const StudentsManagement = () => {
       >
         <form onSubmit={handleAddSubmit}>
           {formError && (
-            <div style={{ background: 'var(--status-failed-bg)', color: '#fca5a5', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem', fontWeight: 500 }}>
               {formError}
             </div>
           )}
@@ -434,7 +434,7 @@ const StudentsManagement = () => {
       >
         <form onSubmit={handleEditSubmit}>
           {formError && (
-            <div style={{ background: 'var(--status-failed-bg)', color: '#fca5a5', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem', fontWeight: 500 }}>
               {formError}
             </div>
           )}
@@ -572,7 +572,7 @@ const StudentsManagement = () => {
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
               <button
                 type="button"
                 className="btn btn-secondary"

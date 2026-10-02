@@ -170,10 +170,10 @@ const ScanPage = () => {
           </div>
 
           {/* Student Details Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem', background: 'var(--bg-input)', padding: '1rem', borderRadius: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem', background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1rem', borderRadius: '10px' }}>
             <div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Student Name</span>
-              <p style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff' }}>{scanResult.student.name}</p>
+              <p style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-main)' }}>{scanResult.student.name}</p>
             </div>
             <div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Register Number</span>
@@ -266,10 +266,10 @@ const ScanPage = () => {
             Entry record #{confirmedRecord.id} has been permanently saved to the database.
           </p>
 
-          <div style={{ maxWidth: '400px', margin: '0 auto 1.75rem auto', textAlign: 'left', background: 'var(--bg-input)', padding: '1rem 1.25rem', borderRadius: '10px' }}>
+          <div style={{ maxWidth: '400px', margin: '0 auto 1.75rem auto', textAlign: 'left', background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1rem 1.25rem', borderRadius: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Student:</span>
-              <strong style={{ color: '#fff' }}>{confirmedRecord.student?.name}</strong>
+              <strong style={{ color: 'var(--text-main)' }}>{confirmedRecord.student?.name}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Late Duration:</span>

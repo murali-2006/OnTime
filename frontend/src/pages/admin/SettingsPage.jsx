@@ -402,9 +402,9 @@ const SettingsPage = () => {
             <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '0.75rem', lineHeight: '1.5' }}>
               Are you sure you want to reset <strong>today's demo records</strong>?
             </p>
-            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '0.85rem', fontSize: '0.85rem', color: '#f59e0b', marginBottom: '0.75rem' }}>
-              <strong>Safe Presentation Reset:</strong>
-              <ul style={{ marginTop: '0.35rem', paddingLeft: '1.2rem', lineHeight: '1.4' }}>
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#92400e', marginBottom: '0.75rem' }}>
+              <strong style={{ color: '#78350f' }}>Safe Presentation Reset:</strong>
+              <ul style={{ marginTop: '0.35rem', paddingLeft: '1.2rem', lineHeight: '1.4', color: '#92400e' }}>
                 <li>Clears only today's demo gate scans and test payment records.</li>
                 <li>Allows the same student to be scanned again for demonstration.</li>
                 <li><strong>Preserves</strong> all students, original barcodes, staff accounts, fine rules, and college settings.</li>
@@ -415,7 +415,7 @@ const SettingsPage = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+          <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
             <button
               type="button"
               className="btn btn-secondary"
@@ -429,7 +429,7 @@ const SettingsPage = () => {
               className="btn btn-primary"
               onClick={handleConfirmDemoReset}
               disabled={resettingDemo}
-              style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#000', fontWeight: 600 }}
+              style={{ background: '#d97706', borderColor: '#d97706', color: '#ffffff', fontWeight: 600 }}
             >
               {resettingDemo ? 'Resetting Demo Data...' : 'Confirm Demo Reset'}
             </button>

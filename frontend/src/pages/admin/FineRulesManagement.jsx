@@ -241,7 +241,7 @@ const FineRulesManagement = () => {
       >
         <form onSubmit={handleSubmit}>
           {formError && (
-            <div style={{ background: 'var(--status-failed-bg)', color: '#fca5a5', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem', fontWeight: 500 }}>
               {formError}
             </div>
           )}
@@ -298,7 +298,7 @@ const FineRulesManagement = () => {
               checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
             />
-            <label htmlFor="activeCheck" style={{ fontSize: '0.9rem', color: '#fff', cursor: 'pointer' }}>
+            <label htmlFor="activeCheck" style={{ fontSize: '0.9rem', color: 'var(--text-main)', cursor: 'pointer' }}>
               Rule is Active and in effect
             </label>
           </div>

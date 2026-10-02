@@ -49,7 +49,7 @@ const AdminDashboard = () => {
       </div>
 
       {error && (
-        <div className="card" style={{ borderLeft: '4px solid var(--status-failed)', color: '#fca5a5' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--status-failed)', color: '#b91c1c', background: '#fef2f2' }}>
           {error}
         </div>
       )}

@@ -26,8 +26,8 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = '540px' })
           <button 
             type="button" 
             onClick={onClose}
-            className="btn btn-secondary btn-sm"
-            style={{ padding: '0.25rem 0.5rem', border: 'none', background: 'transparent' }}
+            className="modal-close-btn"
+            aria-label="Close modal"
           >
             <X size={20} />
           </button>

@@ -96,16 +96,17 @@ const LoginPage = () => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: '0.6rem',
               background: 'rgba(245, 158, 11, 0.1)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              color: 'var(--status-pending)',
-              padding: '0.75rem',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              color: '#b45309',
+              padding: '0.75rem 1rem',
               borderRadius: 'var(--radius-md)',
               fontSize: '0.85rem',
+              fontWeight: 500,
               marginBottom: '1.25rem'
             }}>
-              <AlertCircle size={16} /> Your session has expired. Please sign in again.
+              <AlertCircle size={16} color="#d97706" style={{ flexShrink: 0 }} /> Your session has expired. Please sign in again.
             </div>
           )}
 
@@ -113,16 +114,17 @@ const LoginPage = () => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              background: 'var(--status-failed-bg)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#fca5a5',
-              padding: '0.75rem',
+              gap: '0.6rem',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#b91c1c',
+              padding: '0.75rem 1rem',
               borderRadius: 'var(--radius-md)',
               fontSize: '0.85rem',
+              fontWeight: 500,
               marginBottom: '1.25rem'
             }}>
-              <AlertCircle size={16} /> {error}
+              <AlertCircle size={16} color="#dc2626" style={{ flexShrink: 0 }} /> {error}
             </div>
           )}
 

@@ -602,12 +602,12 @@ tr:hover td {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1000;
   padding: 1.5rem;
   animation: fadeIn 0.2s ease-out;
 }
@@ -618,7 +618,10 @@ tr:hover td {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 540px;
-  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   animation: scaleUp 0.2s ease-out;
   color: var(--text-main);
@@ -631,6 +634,27 @@ tr:hover td {
   align-items: center;
   justify-content: space-between;
   background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.modal-close-btn,
+.modal-header button {
+  color: var(--text-muted) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-close-btn:hover,
+.modal-header button:hover {
+  color: var(--text-main) !important;
+  background: #e2e8f0 !important;
 }
 
 .modal-body {
@@ -638,6 +662,8 @@ tr:hover td {
   max-height: 80vh;
   overflow-y: auto;
   background: #ffffff;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-footer {
@@ -648,6 +674,7 @@ tr:hover td {
   justify-content: flex-end;
   gap: 0.75rem;
   background: #f8fafc;
+  flex-shrink: 0;
 }
 
 /* Scanner Layout */
@@ -700,7 +727,7 @@ tr:hover td {
   50% { top: 100%; }
 }
 
-/* Toast Notifications */
+/* Toast Notifications — Sleek, High-Contrast & Consistent */
 .toast-container {
   position: fixed;
   bottom: 2rem;
@@ -708,34 +735,68 @@ tr:hover td {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  z-index: 120;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 .toast {
-  background: #ffffff;
-  border: 1px solid var(--border-subtle);
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #1e293b !important;
   border-radius: var(--radius-md);
-  padding: 0.85rem 1.25rem;
+  padding: 0.9rem 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
-  min-width: 280px;
-  max-width: 420px;
-  color: var(--text-main);
-  animation: slideInRight 0.3s ease;
+  gap: 0.85rem;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  min-width: 290px;
+  max-width: 440px;
+  pointer-events: auto;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.toast .toast-message {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #f8fafc !important;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.toast-close-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  cursor: pointer;
+  padding: 4px !important;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .toast-success {
-  border-left: 4px solid var(--status-paid);
+  border-left: 4px solid #10b981 !important;
+  box-shadow: 0 10px 25px -3px rgba(16, 185, 129, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.25) !important;
 }
 
 .toast-error {
-  border-left: 4px solid var(--status-failed);
+  border-left: 4px solid #ef4444 !important;
+  box-shadow: 0 10px 25px -3px rgba(239, 68, 68, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.25) !important;
 }
 
 .toast-info {
-  border-left: 4px solid var(--primary-600);
+  border-left: 4px solid #3b82f6 !important;
+  box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Animations */
@@ -1226,22 +1287,56 @@ html, body {
     padding: 1.35rem !important;
   }
 
+  .toast-container {
+    bottom: 1.25rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    align-items: center !important;
+    pointer-events: none !important;
+  }
+
+  .toast {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   .modal-overlay {
-    padding: 1rem;
+    padding: 0.85rem !important;
+  }
+
+  .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: calc(100vh - 1.7rem) !important;
   }
 
   .modal-header {
-    padding: 1rem 1.25rem;
+    padding: 1rem 1.15rem !important;
   }
 
   .modal-body {
-    padding: 1.15rem 1.25rem;
+    padding: 1.15rem !important;
   }
 
   .modal-footer {
-    padding: 0.85rem 1.25rem;
+    padding: 0.85rem 1.15rem !important;
     flex-wrap: wrap;
     gap: 0.75rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse !important;
+    width: 100% !important;
+  }
+
+  .modal-actions button,
+  .modal-actions a,
+  .modal-actions .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
   }
 
   .scanner-viewport {
@@ -1311,6 +1406,33 @@ html, body {
   .receipt-card {
     padding: 1.1rem !important;
   }
+
+  .toast-container {
+    bottom: 1rem !important;
+    left: 0.65rem !important;
+    right: 0.65rem !important;
+  }
+
+  .toast {
+    padding: 0.75rem 0.9rem !important;
+    gap: 0.65rem !important;
+  }
+
+  .toast .toast-message {
+    font-size: 0.85rem !important;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem !important;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .modal-body {
+    padding: 0.85rem 1rem !important;
+  }
 }
 
 /* ====================================================================
@@ -1327,10 +1449,26 @@ html, body {
   color: var(--text-main) !important;
 }
 
-/* Modal order summaries */
+/* Universal Error, Warning & Alert Box Contrast */
+[style*="background: var(--status-failed-bg)"],
+[style*="background:var(--status-failed-bg)"],
+.status-failed-box {
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #b91c1c !important;
+}
+[style*="background: var(--status-failed-bg)"] svg,
+[style*="background:var(--status-failed-bg)"] svg {
+  color: #dc2626 !important;
+}
+
+/* Modal order & info summaries */
 .modal-content div[style*="background: var(--bg-input)"] {
   background: #f8fafc !important;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-subtle) !important;
+}
+.modal-content div[style*="background: var(--bg-input)"] [style*="color: #fff"] {
+  color: var(--text-main) !important;
 }
 
 /* Brand badge in table */

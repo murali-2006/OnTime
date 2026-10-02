@@ -11,15 +11,17 @@ const Toast = ({ message, type = 'info', onClose }) => {
   };
 
   return (
-    <div className={`toast toast-${type}`}>
+    <div className={`toast toast-${type}`} role="alert">
       {icons[type] || icons.info}
-      <div style={{ flex: 1, fontSize: '0.9rem', color: '#fff' }}>
+      <div className="toast-message">
         {message}
       </div>
       {onClose && (
         <button 
+          type="button"
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
+          className="toast-close-btn"
+          aria-label="Close notification"
         >
           <X size={16} />
         </button>

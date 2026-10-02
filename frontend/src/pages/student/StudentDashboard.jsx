@@ -62,7 +62,7 @@ const StudentDashboard = () => {
       </div>
 
       {error && (
-        <div className="card" style={{ borderLeft: '4px solid var(--status-failed)', color: '#fca5a5' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--status-failed)', color: '#b91c1c', background: '#fef2f2' }}>
           {error}
         </div>
       )}
@@ -106,7 +106,7 @@ const StudentDashboard = () => {
                 {todayRecord ? (
                   todayRecord.late_minutes > 0 ? (
                     <span>
-                      Arrived at <strong style={{ color: '#fff' }}>{todayRecord.arrival_time}</strong> — Late by <strong style={{ color: '#f59e0b' }}>{todayRecord.late_minutes} minutes</strong> (Fine: ₹{parseFloat(todayRecord.fine_amount).toFixed(2)})
+                      Arrived at <strong style={{ color: 'var(--text-main)' }}>{todayRecord.arrival_time}</strong> — Late by <strong style={{ color: '#f59e0b' }}>{todayRecord.late_minutes} minutes</strong> (Fine: ₹{parseFloat(todayRecord.fine_amount).toFixed(2)})
                     </span>
                   ) : (
                     <span>Arrived on time at <strong style={{ color: '#10b981' }}>{todayRecord.arrival_time}</strong>. No fine applied.</span>

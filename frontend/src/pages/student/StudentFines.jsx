@@ -297,11 +297,11 @@ const StudentFines = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
                 Your late fine has been verified and cleared by the backend.
               </p>
-              <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: '10px', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
-                <div>Transaction ID: <strong style={{ fontFamily: 'monospace', color: '#fff' }}>{paymentSuccessData.transactionId}</strong></div>
+              <div style={{ background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1rem', borderRadius: '10px', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+                <div>Transaction ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-main)' }}>{paymentSuccessData.transactionId}</strong></div>
                 <div>Status: <strong style={{ color: '#10b981' }}>PAID</strong></div>
               </div>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <div className="modal-actions" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                 <Link
                   to={`/student/receipt/${paymentSuccessData.paymentId}`}
                   className="btn btn-primary"
@@ -321,28 +321,28 @@ const StudentFines = () => {
           ) : (
             <div>
               {paymentError && (
-                <div style={{ background: 'var(--status-failed-bg)', color: '#fca5a5', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                  <AlertCircle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+                  <AlertCircle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#dc2626' }} />
                   {paymentError}
                 </div>
               )}
 
               {/* Order Summary */}
-              <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Fine Reference:</span>
-                  <span style={{ fontWeight: 600, color: '#fff' }}>Record #{selectedFine?.id}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Record #{selectedFine?.id}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Incident Date:</span>
-                  <span style={{ color: '#fff' }}>{selectedFine?.date?.split('T')[0]}</span>
+                  <span style={{ color: 'var(--text-main)' }}>{selectedFine?.date?.split('T')[0]}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Late Duration:</span>
                   <span style={{ color: '#f59e0b', fontWeight: 600 }}>{selectedFine?.late_minutes} minutes</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
-                  <span style={{ fontWeight: 700, color: '#fff' }}>Total Amount:</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Total Amount:</span>
                   <span style={{ fontWeight: 800, fontSize: '1.35rem', color: '#10b981' }}>
                     ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}
                   </span>
@@ -350,7 +350,7 @@ const StudentFines = () => {
               </div>
 
               {/* Security & Gateway Notice */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(37,99,235,0.08)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 <ShieldCheck size={20} color="var(--primary-500)" style={{ flexShrink: 0 }} />
                 <span>
                   Secured with 256-bit SSL encryption. All transactions are cryptographically verified by the backend fine engine.
@@ -358,7 +358,7 @@ const StudentFines = () => {
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <div className="modal-actions" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
