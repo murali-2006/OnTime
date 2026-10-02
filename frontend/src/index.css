@@ -776,7 +776,7 @@ tr:hover td {
 }
 
 /* ====================================================================
-   MOBILE RESPONSIVE UI SYSTEM (320px, 360px, 375px, 390px, 414px, 430px)
+   DESKTOP & MOBILE ISOLATED RESPONSIVE ARCHITECTURE
    ==================================================================== */
 
 /* Global container constraints */
@@ -785,27 +785,7 @@ html, body {
   max-width: 100vw;
 }
 
-.app-container {
-  overflow-x: hidden;
-  max-width: 100vw;
-  width: 100%;
-}
-
-.main-content {
-  overflow-x: hidden;
-  min-width: 0;
-  max-width: 100%;
-  width: 100%;
-}
-
-.content-body {
-  min-width: 0;
-  max-width: 1400px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Navbar Base Responsive Classes */
+/* Base Navbar items & Profile Elements */
 .navbar-brand-group {
   display: flex;
   align-items: center;
@@ -815,6 +795,13 @@ html, body {
 }
 
 .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.user-profile-badge {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -844,15 +831,11 @@ html, body {
   text-overflow: ellipsis;
 }
 
-.navbar-logout-text {
-  display: inline;
-}
-
 /* Administrative Controls Component */
 .admin-controls-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
+  gap: 0.85rem;
   width: 100%;
 }
 
@@ -861,9 +844,10 @@ html, body {
   align-items: center !important;
   justify-content: space-between !important;
   width: 100% !important;
-  padding: 0.75rem 1rem !important;
+  padding: 0.85rem 1.15rem !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
+  min-height: 46px;
 }
 
 .admin-control-label {
@@ -880,7 +864,19 @@ html, body {
   text-overflow: ellipsis !important;
 }
 
-/* Table Containment & Smooth Scroll */
+/* Table Containment & Smooth Isolated Scroll */
+.table-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block;
+}
+
 .table-container table {
   width: 100%;
   min-width: 620px;
@@ -888,7 +884,7 @@ html, body {
 }
 
 .table-container::-webkit-scrollbar {
-  height: 5px;
+  height: 6px;
 }
 .table-container::-webkit-scrollbar-track {
   background: var(--bg-main);
@@ -899,57 +895,245 @@ html, body {
   border-radius: 4px;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 1024px) {
+/* ====================================================================
+   1. DESKTOP LAYOUT (>= 768px: 1366px, 1440px, 1920px)
+   Structure:
+   +-------------------------------------------------------------+
+   | FIXED SIDEBAR |        FIXED TOP NAVBAR                     |
+   |               |---------------------------------------------|
+   |               |              MAIN CONTENT                   |
+   +-------------------------------------------------------------+
+   ==================================================================== */
+@media (min-width: 768px) {
+  /* Three-line Hamburger Button is STRICTLY HIDDEN on desktop */
+  .navbar-menu-btn,
+  .btn.navbar-menu-btn,
+  button.navbar-menu-btn {
+    display: none !important;
+  }
+
+  /* Backdrop is hidden on desktop */
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
+  /* App Shell Container */
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    position: relative;
+    width: 100%;
+  }
+
+  /* FIXED SIDEBAR on the left */
+  .app-container .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    z-index: 50;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-sidebar);
+    overflow-y: auto;
+    transform: none !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* MAIN CONTENT starts to the RIGHT of the fixed sidebar */
+  .app-container .main-content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    min-width: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-main);
+  }
+
+  /* FIXED TOP NAVBAR begins AFTER the sidebar */
+  .app-container .navbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    width: calc(100% - var(--sidebar-width));
+    height: var(--navbar-height);
+    z-index: 40;
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border-sidebar);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+  }
+
+  /* CONTENT BODY starts BELOW the fixed top navbar */
+  .app-container .content-body {
+    margin-top: var(--navbar-height);
+    padding: 2rem;
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    min-width: 0;
+    box-sizing: border-box;
+    flex: 1;
+  }
+
+  /* Desktop Grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .admin-controls-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+}
+
+/* Large Screens (1024px to 1366px) */
+@media (min-width: 768px) and (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
+/* ====================================================================
+   2. MOBILE LAYOUT (< 768px: 320px, 360px, 375px, 390px, 414px, 430px)
+   ==================================================================== */
+@media (max-width: 767px) {
+  /* App Shell Container */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .app-container .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw;
+    min-width: 0;
+  }
+
+  /* Three-line Hamburger Button is VISIBLE on mobile */
+  .navbar-menu-btn,
+  .btn.navbar-menu-btn,
+  button.navbar-menu-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem;
+  }
+
+  /* Mobile Drawer Navigation */
+  .app-container .sidebar {
+    position: fixed !important;
     top: 0;
     left: 0;
     bottom: 0;
     width: min(85vw, 320px) !important;
     max-width: 85vw !important;
+    height: 100vh;
     transform: translateX(-100%);
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.45);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 50;
-  }
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .content-body {
-    padding: 1.25rem 1rem;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.5);
+    background: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
   }
 
-  .navbar {
-    padding: 0 1rem;
+  .app-container .sidebar.open {
+    transform: translateX(0) !important;
   }
 
+  /* Mobile Sticky Top Navbar */
+  .app-container .navbar {
+    position: sticky !important;
+    top: 0;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 64px;
+    z-index: 40;
+    padding: 0 1.15rem;
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border-sidebar);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Mobile Page Content Padding: 16px - 20px (Comfortable, Not Cramped) */
+  .app-container .content-body {
+    margin-top: 0 !important;
+    padding: 1.25rem 1.15rem; /* ~20px vertical, 18px horizontal */
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  /* Mobile Vertical Spacing & Card Padding (16px - 24px) */
   .dashboard-grid {
     grid-template-columns: 1fr !important;
+    gap: 1.15rem;
+    margin-bottom: 1.5rem;
   }
 
+  .card {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.85rem;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  /* Mobile Administrative Controls: 1 column, generous touch target */
   .admin-controls-grid {
     grid-template-columns: 1fr !important;
+    gap: 0.85rem;
   }
-}
 
-/* Phablets & Large Phones (max-width: 640px) */
-@media (max-width: 640px) {
+  .admin-control-btn {
+    padding: 0.85rem 1.15rem !important;
+    min-height: 46px;
+  }
+
+  /* Stack inline minmax grids to 1 column */
   div[style*="minmax"],
   div[style*="minmax(2"] {
     grid-template-columns: 1fr !important;
+    gap: 1rem;
   }
 
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
   .card-header > div:first-child {
@@ -970,105 +1154,16 @@ html, body {
     max-width: 85px;
   }
 
-  .receipt-card {
-    padding: 1.5rem !important;
-  }
-
-  .scanner-viewport {
-    height: 260px;
-  }
-
-  .scanner-reticle {
-    width: 200px;
-    height: 140px;
-  }
-}
-
-/* Standard Mobile Phones (max-width: 480px) */
-@media (max-width: 480px) {
-  .navbar {
-    padding: 0 0.65rem;
-    height: 60px;
-  }
-
-  .navbar-brand-group {
-    gap: 0.4rem;
-  }
-
-  .navbar-brand {
-    font-size: 1.15rem;
-    gap: 0.4rem;
-  }
-
-  .navbar-brand > div {
-    width: 30px !important;
-    height: 30px !important;
-  }
-
-  .brand-badge {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.45rem;
-  }
-
-  .navbar-actions {
-    gap: 0.4rem;
-  }
-
-  .user-profile-badge {
-    padding: 0.25rem 0.5rem;
-    gap: 0.4rem;
-    max-width: 120px;
-  }
-
-  .user-avatar {
-    width: 28px;
-    height: 28px;
-    font-size: 0.75rem;
-  }
-
-  .user-profile-name {
-    max-width: 70px;
-    font-size: 0.8rem;
-  }
-
   .user-profile-role {
     display: none;
   }
 
-  .content-body {
-    padding: 0.75rem 0.5rem;
-  }
-
-  .card {
-    padding: 1rem 0.85rem;
-  }
-
-  .dashboard-grid {
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .stat-card {
-    padding: 0.85rem;
-  }
-
-  .stat-value {
-    font-size: 1.65rem;
-  }
-
-  .stat-icon {
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-  }
-
-  .stat-icon svg {
-    width: 20px;
-    height: 20px;
+  .receipt-card {
+    padding: 1.35rem !important;
   }
 
   .modal-overlay {
-    padding: 0.75rem;
+    padding: 1rem;
   }
 
   .modal-header {
@@ -1076,72 +1171,69 @@ html, body {
   }
 
   .modal-body {
-    padding: 1rem 1.25rem;
+    padding: 1.15rem 1.25rem;
   }
 
   .modal-footer {
-    padding: 0.75rem 1.25rem;
+    padding: 0.85rem 1.25rem;
     flex-wrap: wrap;
-  }
-
-  .receipt-card {
-    padding: 1.15rem !important;
+    gap: 0.75rem;
   }
 
   .scanner-viewport {
-    height: 220px;
+    height: 240px;
   }
 
   .scanner-reticle {
-    width: 180px;
-    height: 120px;
+    width: 200px;
+    height: 130px;
   }
 }
 
 /* Compact Mobile Devices (max-width: 360px - 320px) */
 @media (max-width: 360px) {
-  .navbar {
-    padding: 0 0.4rem;
-    height: 56px;
+  .app-container .navbar {
+    padding: 0 0.75rem;
+    height: 60px;
   }
 
   .navbar-brand-group {
-    gap: 0.25rem;
+    gap: 0.35rem;
   }
 
   .navbar-brand {
-    font-size: 1.05rem;
-    gap: 0.3rem;
+    font-size: 1.1rem;
+    gap: 0.35rem;
   }
 
   .navbar-brand > div {
-    width: 26px !important;
-    height: 26px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .navbar-brand > div svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .brand-badge {
     font-size: 0.6rem;
-    padding: 0.1rem 0.35rem;
+    padding: 0.12rem 0.38rem;
   }
 
   .navbar-actions {
-    gap: 0.3rem;
+    gap: 0.35rem;
   }
 
   .user-profile-badge {
-    padding: 0.2rem 0.4rem;
+    padding: 0.25rem 0.45rem;
     max-width: 95px;
   }
 
   .user-avatar {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
   }
 
   .user-profile-name {
@@ -1149,20 +1241,20 @@ html, body {
     font-size: 0.75rem;
   }
 
-  .content-body {
-    padding: 0.5rem 0.35rem;
+  .app-container .content-body {
+    padding: 1rem 0.85rem; /* ~14px-16px */
   }
 
   .card {
-    padding: 0.85rem 0.65rem;
+    padding: 1.1rem;
   }
 
   .stat-value {
-    font-size: 1.45rem;
+    font-size: 1.65rem;
   }
 
   .receipt-card {
-    padding: 0.85rem !important;
+    padding: 1rem !important;
   }
 }
 

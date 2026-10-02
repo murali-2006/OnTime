@@ -29,7 +29,7 @@ const Navbar = ({ onToggleSidebar }) => {
             type="button"
             className="btn btn-secondary btn-sm navbar-menu-btn"
             onClick={onToggleSidebar}
-            style={{ display: 'inline-flex', padding: '0.4rem', border: 'none' }}
+            style={{ padding: '0.4rem', border: 'none' }}
             title="Toggle Menu"
           >
             <Menu size={20} />
