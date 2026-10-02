@@ -27,18 +27,45 @@ const scanStudent = async (req, res, next) => {
       });
     }
 
-    // 3. Duplicate scan protection: check if an arrival record already exists for today
+    // 3. Central session-time logic: automatically determine applicable session based on server time
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    const existing = await lateRecordRepository.findDuplicateForDate(student.id, today);
+    const session = fineService.getSessionForTime(now);
+    const reportingTime = session.time;
+
+    // 4. Duplicate scan & 4-entry-per-day protection
+    const todayRecords = await lateRecordRepository.findRecordsForStudentAndDate(student.id, today);
+
+    // Rule: Maximum 4 entries allowed per student per day (1 per session)
+    if (todayRecords.length >= 4) {
+      return res.status(409).json({
+        success: false,
+        code: 'DAILY_LIMIT_REACHED',
+        message: "Maximum daily limit reached: 4 entries have already been recorded for this student today.",
+        student: {
+          id: student.id,
+          studentCode: student.student_code,
+          name: student.name,
+          registerNumber: student.register_number,
+          department: student.department,
+          year: student.year
+        }
+      });
+    }
+
+    // Check if an arrival record already exists for the CURRENT session today
+    const existing = todayRecords.find(
+      (r) => r.reporting_time === reportingTime || r.session_name === session.name
+    );
 
     if (existing) {
       return res.status(409).json({
         success: false,
         code: 'DUPLICATE_SCAN',
-        message: "Today's arrival has already been recorded for this student.",
+        message: `Today's arrival for ${session.name} (${session.label}) has already been recorded for this student.`,
         existingRecord: {
           id: existing.id,
+          sessionName: existing.session_name || session.name,
           arrivalTime: existing.arrival_time,
           lateMinutes: existing.late_minutes,
           fineAmount: existing.fine_amount,
@@ -56,10 +83,6 @@ const scanStudent = async (req, res, next) => {
       });
     }
 
-    // 4. Fetch college settings (reporting time)
-    const settings = await fineService.getCollegeSettings();
-    const reportingTime = settings.reporting_time || '09:00:00';
-
     // 5. Backend/server time is source of truth for arrival time
     const arrivalTime = fineService.formatTimeString(now);
 
@@ -70,8 +93,8 @@ const scanStudent = async (req, res, next) => {
     res.json({
       success: true,
       message: calculation.isLate
-        ? `Student identified. Arrival is late by ${calculation.lateMinutes} minute(s).`
-        : 'Student arrived on time. No late fine applicable.',
+        ? `Student identified for ${session.name} (${session.label}). Arrival is late by ${calculation.lateMinutes} minute(s).`
+        : `Student arrived on time for ${session.name} (${session.label}). No late fine applicable.`,
       data: {
         student: {
           id: student.id,
@@ -81,6 +104,8 @@ const scanStudent = async (req, res, next) => {
           department: student.department,
           year: student.year
         },
+        sessionName: session.name,
+        sessionLabel: session.label,
         reportingTime,
         arrivalTime,
         lateMinutes: calculation.lateMinutes,

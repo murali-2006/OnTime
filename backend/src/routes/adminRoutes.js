@@ -24,4 +24,7 @@ router.patch('/fine-rules/:id/status', adminController.toggleFineRuleStatus);
 // Payment audit logs
 router.get('/payments', adminController.getAllPayments);
 
+// Safe Demo Reset (clears today's demo late records and payment test transactions)
+router.post('/demo-reset', adminController.resetDemoData);
+
 module.exports = router;

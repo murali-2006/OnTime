@@ -20,11 +20,11 @@ const PaymentsManagement = () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
+      if (search) params.search = search;
 
       const res = await api.get('/admin/payments', { params });
-      if (res.success) {
+      if (res.success && Array.isArray(res.payments)) {
         setPayments(res.payments);
       }
     } catch (err) {
@@ -45,7 +45,7 @@ const PaymentsManagement = () => {
         <div>
           <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Payment Transactions Audit</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Complete ledger of verified student fine online payments
+            Complete audit ledger of student fine payment records
           </p>
         </div>
         <button type="button" className="btn btn-secondary btn-sm" onClick={fetchPayments}>
@@ -55,7 +55,7 @@ const PaymentsManagement = () => {
 
       {/* Filter Bar */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', alignItems: 'center' }}>
           <div style={{ position: 'relative' }}>
             <Search size={18} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
             <input
@@ -75,7 +75,6 @@ const PaymentsManagement = () => {
           >
             <option value="">All Payment Statuses</option>
             <option value="SUCCESS">SUCCESS</option>
-            <option value="CREATED">CREATED</option>
             <option value="FAILED">FAILED</option>
           </select>
         </div>

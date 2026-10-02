@@ -1,4 +1,15 @@
-const { settingsRepository, fineRulesRepository } = require('../db/repositories/firestoreRepository');
+/**
+ * Shared Time and Session Utilities for OnTime
+ * Centralizes session timings, time parsing, and late duration calculations.
+ */
+
+// Retain ONLY these four exact session timings
+export const SESSION_TIMINGS = [
+  { name: '1st Period', time: '09:00:00', label: '9:00 AM' },
+  { name: '1st Break', time: '11:00:00', label: '11:00 AM' },
+  { name: 'Lunch', time: '13:15:00', label: '1:15 PM' },
+  { name: '2nd Break', time: '15:00:00', label: '3:00 PM' }
+];
 
 /**
  * Robustly parses any time representation into minutes from midnight (0 - 1439).
@@ -11,7 +22,7 @@ const { settingsRepository, fineRulesRepository } = require('../db/repositories/
  * @param {string|Date} timeInput
  * @returns {number} minutes from midnight (0 - 1439)
  */
-const parseTimeToMinutes = (timeInput) => {
+export const parseTimeToMinutes = (timeInput) => {
   if (!timeInput && timeInput !== 0) return 0;
 
   if (timeInput instanceof Date) {
@@ -58,55 +69,31 @@ const parseTimeToMinutes = (timeInput) => {
   return 0;
 };
 
-// Backward-compatible alias
-const timeToMinutes = parseTimeToMinutes;
-
 /**
- * Format Date object to HH:mm:ss in local/server time
- * @param {Date} date
- * @returns {string}
- */
-const formatTimeString = (date = new Date()) => {
-  const pad = (num) => String(num).padStart(2, '0');
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${hours}:${minutes}:${seconds}`;
-};
-
-// Retain ONLY these four exact session timings
-const SESSION_TIMINGS = [
-  { name: '1st Period', time: '09:00:00', label: '9:00 AM' },
-  { name: '1st Break', time: '11:00:00', label: '11:00 AM' },
-  { name: 'Lunch', time: '13:15:00', label: '1:15 PM' },
-  { name: '2nd Break', time: '15:00:00', label: '3:00 PM' }
-];
-
-/**
- * Centrally determine the applicable session for a given arrival time.
+ * Centrally determine the applicable session for a given time
  * Retains strictly the four college sessions:
  * - Before 11:00 AM -> 1st Period (9:00 AM)
  * - 11:00 AM to 1:15 PM -> 1st Break (11:00 AM)
  * - 1:15 PM to 3:00 PM -> Lunch (1:15 PM)
  * - 3:00 PM onwards -> 2nd Break (3:00 PM)
  *
- * @param {string|Date} timeInput - e.g. "09:18:00" or new Date()
+ * @param {string|Date} timeInput
  * @returns {{ name: string, time: string, label: string }}
  */
-const getSessionForTime = (timeInput) => {
+export const getSessionForTime = (timeInput = new Date()) => {
   const mins = parseTimeToMinutes(timeInput);
   const break1Mins = parseTimeToMinutes('11:00:00'); // 660 mins
   const lunchMins = parseTimeToMinutes('13:15:00');  // 795 mins
   const break2Mins = parseTimeToMinutes('15:00:00'); // 900 mins
 
   if (mins < break1Mins) {
-    return SESSION_TIMINGS[0]; // 1st Period -> 9:00 AM
+    return SESSION_TIMINGS[0]; // 1st Period (9:00 AM)
   } else if (mins < lunchMins) {
-    return SESSION_TIMINGS[1]; // 1st Break -> 11:00 AM
+    return SESSION_TIMINGS[1]; // 1st Break (11:00 AM)
   } else if (mins < break2Mins) {
-    return SESSION_TIMINGS[2]; // Lunch -> 1:15 PM
+    return SESSION_TIMINGS[2]; // Lunch (1:15 PM)
   } else {
-    return SESSION_TIMINGS[3]; // 2nd Break -> 3:00 PM
+    return SESSION_TIMINGS[3]; // 2nd Break (3:00 PM)
   }
 };
 
@@ -123,7 +110,7 @@ const getSessionForTime = (timeInput) => {
  * @param {string|Date} arrivalTime
  * @returns {{ lateMinutes: number, isLate: boolean, scheduledMinutes: number, arrivalMinutes: number }}
  */
-const calculateLateDuration = (scheduledTime, arrivalTime) => {
+export const calculateLateDuration = (scheduledTime, arrivalTime) => {
   const schedMins = parseTimeToMinutes(scheduledTime);
   const arrMins = parseTimeToMinutes(arrivalTime);
 
@@ -147,63 +134,12 @@ const calculateLateDuration = (scheduledTime, arrivalTime) => {
 };
 
 /**
- * Get college settings from Firestore (reporting time, late enabled status, and session timings)
+ * Format total minutes from midnight to HH:MM format
+ * @param {number} totalMinutes
+ * @returns {string} e.g. "09:18"
  */
-const getCollegeSettings = async () => {
-  return await settingsRepository.getSettings();
-};
-
-/**
- * Calculate late minutes and applicable fine amount based on database rules
- * @param {string} reportingTime - e.g. '09:00:00' or '9:00 AM'
- * @param {string} arrivalTime - e.g. '09:18:00' or '9:18 AM'
- * @returns {Promise<{ lateMinutes: number, fineAmount: number, isLate: boolean, ruleId: number|null }>}
- */
-const calculateFine = async (reportingTime, arrivalTime) => {
-  const { lateMinutes, isLate } = calculateLateDuration(reportingTime, arrivalTime);
-
-  // On time or arrived early
-  if (!isLate || lateMinutes <= 0) {
-    return {
-      lateMinutes: 0,
-      fineAmount: 0.00,
-      isLate: false,
-      ruleId: null
-    };
-  }
-
-  // Query active fine rules ordered by min_minutes from Firestore
-  const rules = await fineRulesRepository.findActive();
-
-  let fineAmount = 0.00;
-  let ruleId = null;
-
-  for (const rule of rules) {
-    const min = parseInt(rule.min_minutes, 10);
-    const max = rule.max_minutes !== null ? parseInt(rule.max_minutes, 10) : Infinity;
-
-    if (lateMinutes >= min && lateMinutes <= max) {
-      fineAmount = parseFloat(rule.fine_amount);
-      ruleId = rule.id;
-      break;
-    }
-  }
-
-  return {
-    lateMinutes,
-    fineAmount,
-    isLate: true,
-    ruleId
-  };
-};
-
-module.exports = {
-  timeToMinutes,
-  parseTimeToMinutes,
-  calculateLateDuration,
-  formatTimeString,
-  calculateFine,
-  getCollegeSettings,
-  SESSION_TIMINGS,
-  getSessionForTime
+export const formatMinutesToHHMM = (totalMinutes) => {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };

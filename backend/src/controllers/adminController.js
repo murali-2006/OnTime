@@ -2,7 +2,8 @@ const {
   settingsRepository,
   fineRulesRepository,
   paymentRepository,
-  dashboardRepository
+  dashboardRepository,
+  lateRecordRepository
 } = require('../db/repositories/firestoreRepository');
 
 /**
@@ -152,17 +153,51 @@ const toggleFineRuleStatus = async (req, res, next) => {
 };
 
 /**
- * Get all payment records
+ * Get all payment records (Payment Logs displays ONLY SUCCESS and FAILED payments)
  * Route: GET /api/admin/payments
  */
 const getAllPayments = async (req, res, next) => {
   try {
     const { status, search } = req.query;
-    const payments = await paymentRepository.findAll({ status, search });
+    let payments = await paymentRepository.findAll({ search });
+
+    // Payment Logs audit displays ONLY SUCCESS and FAILED records (excludes internal CREATED)
+    if (status === 'SUCCESS') {
+      payments = payments.filter((p) => p.status === 'SUCCESS');
+    } else if (status === 'FAILED') {
+      payments = payments.filter((p) => p.status === 'FAILED');
+    } else {
+      // "All Payment Statuses" -> show both SUCCESS and FAILED records
+      payments = payments.filter((p) => p.status === 'SUCCESS' || p.status === 'FAILED');
+    }
+
     res.json({
       success: true,
       count: payments.length,
       payments
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Safe Demo Reset: Clears today's demo late records and payment test transactions.
+ * Preserves students, users, staff, fine rules, college settings, barcodes, and permanent configuration.
+ * Route: POST /api/admin/demo-reset
+ */
+const resetDemoData = async (req, res, next) => {
+  try {
+    const { studentId, date } = req.body || {};
+    const result = await lateRecordRepository.resetTodayDemoRecords({
+      studentId: studentId ? Number(studentId) : null,
+      dateStr: date || null
+    });
+
+    res.json({
+      success: true,
+      message: `Demo reset complete. Safely cleared ${result.deletedLateRecordsCount} record(s) and ${result.deletedPaymentsCount} payment transaction(s) for ${result.targetDate}. Students can now be scanned again for demonstration.`,
+      result
     });
   } catch (error) {
     next(error);
@@ -177,5 +212,6 @@ module.exports = {
   createFineRule,
   updateFineRule,
   toggleFineRuleStatus,
-  getAllPayments
+  getAllPayments,
+  resetDemoData
 };

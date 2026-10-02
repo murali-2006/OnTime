@@ -192,7 +192,9 @@ const ScanPage = () => {
           {/* Arrival & Late Calculation Breakdown */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <div className="card" style={{ padding: '1rem', textAlign: 'center', background: 'var(--bg-main)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reporting Baseline</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {scanResult.sessionName ? `${scanResult.sessionName} (${scanResult.sessionLabel})` : 'Reporting Baseline'}
+              </span>
               <p style={{ fontFamily: 'monospace', fontSize: '1.25rem', fontWeight: 700, marginTop: '0.25rem' }}>
                 {scanResult.reportingTime}
               </p>

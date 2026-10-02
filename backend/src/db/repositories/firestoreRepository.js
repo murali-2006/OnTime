@@ -363,16 +363,37 @@ const fineRulesRepository = {
 // ==========================================
 const lateRecordRepository = {
   async findDuplicateForDate(studentId, dateStr) {
+    return this.findDuplicate(studentId, dateStr);
+  },
+
+  async findDuplicate(studentId, dateStr, reportingTime = null) {
     const snapshot = await db().collection('late_records').get();
     let found = null;
     snapshot.forEach((doc) => {
       const data = docToData(doc);
       const recDate = data.date ? (data.date.includes('T') ? data.date.split('T')[0] : data.date) : '';
-      if (Number(data.student_id) === Number(studentId) && recDate === dateStr) {
+      if (
+        Number(data.student_id) === Number(studentId) &&
+        recDate === dateStr &&
+        (!reportingTime || data.reporting_time === reportingTime)
+      ) {
         found = data;
       }
     });
     return found;
+  },
+
+  async findRecordsForStudentAndDate(studentId, dateStr) {
+    const snapshot = await db().collection('late_records').get();
+    const records = [];
+    snapshot.forEach((doc) => {
+      const data = docToData(doc);
+      const recDate = data.date ? (data.date.includes('T') ? data.date.split('T')[0] : data.date) : '';
+      if (Number(data.student_id) === Number(studentId) && recDate === dateStr) {
+        records.push(data);
+      }
+    });
+    return records;
   },
 
   async create(data) {
@@ -385,11 +406,13 @@ const lateRecordRepository = {
       student_id: Number(data.student_id || data.studentId),
       staff_id: data.staff_id || data.staffId ? Number(data.staff_id || data.staffId) : null,
       date: dateStr,
+      session_name: data.session_name || data.sessionName || null,
       reporting_time: data.reporting_time || data.reportingTime,
       arrival_time: data.arrival_time || data.arrivalTime,
       late_minutes: Number(data.late_minutes || data.lateMinutes || 0),
       fine_amount: parseFloat(data.fine_amount || data.fineAmount || 0).toFixed(2),
       status: data.status || 'PENDING',
+      is_demo: data.is_demo !== undefined ? Boolean(data.is_demo) : false,
       created_at: now,
       updated_at: now
     };
@@ -528,6 +551,43 @@ const lateRecordRepository = {
         await db().collection('late_records').doc(doc.id).delete();
       }
     }
+  },
+
+  async resetTodayDemoRecords({ studentId = null, dateStr = null } = {}) {
+    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    const snapshot = await db().collection('late_records').get();
+    const deletedLateRecordIds = [];
+
+    for (const doc of snapshot.docs) {
+      const d = docToData(doc);
+      const recDate = d.date ? (d.date.includes('T') ? d.date.split('T')[0] : d.date) : '';
+      const matchesDate = recDate === targetDate;
+      const matchesStudent = !studentId || Number(d.student_id) === Number(studentId);
+
+      if (matchesDate && matchesStudent) {
+        deletedLateRecordIds.push(d.id);
+        await db().collection('late_records').doc(doc.id).delete();
+      }
+    }
+
+    // Safely delete corresponding payments for these late records only
+    let deletedPaymentsCount = 0;
+    if (deletedLateRecordIds.length > 0) {
+      const paySnapshot = await db().collection('payments').get();
+      for (const pDoc of paySnapshot.docs) {
+        const p = docToData(pDoc);
+        if (deletedLateRecordIds.includes(Number(p.late_record_id))) {
+          await db().collection('payments').doc(pDoc.id).delete();
+          deletedPaymentsCount++;
+        }
+      }
+    }
+
+    return {
+      deletedLateRecordsCount: deletedLateRecordIds.length,
+      deletedPaymentsCount,
+      targetDate
+    };
   }
 };
 

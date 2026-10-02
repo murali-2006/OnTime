@@ -63,7 +63,7 @@ const Navbar = ({ onToggleSidebar }) => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.85rem' }}>
-                  {user.profile?.name || user.email.split('@')[0]}
+                  {role === 'STAFF' ? (user.profile?.name || 'Professor JD') : (user.profile?.name || user.email.split('@')[0])}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   {getRoleDisplayName(role)}

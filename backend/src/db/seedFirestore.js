@@ -70,7 +70,7 @@ async function seedFirestore() {
     await firestore.collection('staff').doc('1').set({
       id: 1,
       user_id: 2,
-      name: 'Prof. Robert Jenkins',
+      name: 'Professor JD',
       employee_id: 'EMP202401',
       department: 'Computer Science & Engineering',
       created_at: new Date().toISOString(),

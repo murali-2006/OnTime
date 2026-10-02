@@ -11,7 +11,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
-import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import BarcodeRenderer from '../../components/BarcodeRenderer';
 import Toast from '../../components/Toast';
@@ -21,7 +20,6 @@ const StudentsManagement = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -53,7 +51,6 @@ const StudentsManagement = () => {
       const params = {};
       if (search) params.search = search;
       if (deptFilter) params.department = deptFilter;
-      if (statusFilter) params.status = statusFilter;
 
       const res = await api.get('/students', { params });
       if (res.success) {
@@ -68,7 +65,7 @@ const StudentsManagement = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, [search, deptFilter, statusFilter]);
+  }, [search, deptFilter]);
 
   const handleOpenAdd = () => {
     setFormData({
@@ -219,16 +216,6 @@ const StudentsManagement = () => {
             <option value="Mechanical Engineering">Mechanical Engineering</option>
             <option value="Civil Engineering">Civil Engineering</option>
           </select>
-
-          <select
-            className="form-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
-          </select>
         </div>
       </div>
 
@@ -244,14 +231,13 @@ const StudentsManagement = () => {
                 <th>Department</th>
                 <th>Year</th>
                 <th>Email</th>
-                <th>Status</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                     Loading student records...
                   </td>
                 </tr>
@@ -275,7 +261,6 @@ const StudentsManagement = () => {
                     <td>{stu.department}</td>
                     <td>{stu.year}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{stu.email}</td>
-                    <td><Badge status={stu.status} /></td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                         <button
@@ -300,7 +285,7 @@ const StudentsManagement = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
                     No students found matching your criteria.
                   </td>
                 </tr>

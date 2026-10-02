@@ -86,7 +86,7 @@ const LandingPage = () => {
           fontWeight: 800,
           lineHeight: 1.15,
           marginBottom: '1.25rem',
-          background: 'linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)',
+          background: 'linear-gradient(180deg, #0f172a 0%, #2563eb 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
@@ -142,7 +142,7 @@ const LandingPage = () => {
         </div>
 
         {/* Demo Credentials Quick-Access Box */}
-        <div id="demo-accounts" className="card" style={{ border: '1px solid rgba(59, 130, 246, 0.4)', background: 'linear-gradient(180deg, #111827 0%, #172033 100%)' }}>
+        <div id="demo-accounts" className="card" style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}>
           <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>🚀 Quick Demo & Evaluation Accounts</h2>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
             Click any button below to instantly sign in with pre-seeded demo roles:
@@ -152,12 +152,12 @@ const LandingPage = () => {
             {/* Admin */}
             <div style={{ background: 'var(--bg-main)', padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span style={{ fontWeight: 700, color: '#fff' }}>College Administrator</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>College Administrator</span>
                 <span className="badge badge-active">ADMIN</span>
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                <div>Email: <strong style={{ color: '#fff' }}>admin@ontime.college</strong></div>
-                <div>Pass: <strong style={{ color: '#fff' }}>Admin@123</strong></div>
+                <div>Email: <strong style={{ color: 'var(--text-main)' }}>admin@ontime.college</strong></div>
+                <div>Pass: <strong style={{ color: 'var(--text-main)' }}>Admin@123</strong></div>
                 <div style={{ marginTop: '0.35rem' }}>Controls reporting time, rules, student directory, & payment audits.</div>
               </div>
               <button
@@ -172,12 +172,12 @@ const LandingPage = () => {
             {/* Staff */}
             <div style={{ background: 'var(--bg-main)', padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span style={{ fontWeight: 700, color: '#fff' }}>Attendance Staff</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Attendance Staff</span>
                 <span className="badge badge-waived">STAFF</span>
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                <div>Email: <strong style={{ color: '#fff' }}>staff@ontime.college</strong></div>
-                <div>Pass: <strong style={{ color: '#fff' }}>Staff@123</strong></div>
+                <div>Email: <strong style={{ color: 'var(--text-main)' }}>staff@ontime.college</strong></div>
+                <div>Pass: <strong style={{ color: 'var(--text-main)' }}>Staff@123</strong></div>
                 <div style={{ marginTop: '0.35rem' }}>Operates camera barcode scanner at gate to log student arrivals.</div>
               </div>
               <button
@@ -192,13 +192,13 @@ const LandingPage = () => {
             {/* Student */}
             <div style={{ background: 'var(--bg-main)', padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span style={{ fontWeight: 700, color: '#fff' }}>Student (John Doe)</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Student (John Doe)</span>
                 <span className="badge badge-paid">STUDENT</span>
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                <div>Email: <strong style={{ color: '#fff' }}>stu001@ontime.college</strong></div>
-                <div>Pass: <strong style={{ color: '#fff' }}>Student@123</strong></div>
-                <div style={{ marginTop: '0.35rem' }}>Barcode ID: <strong style={{ color: 'var(--accent-cyan)' }}>STU001</strong>. Views fines & pays online.</div>
+                <div>Email: <strong style={{ color: 'var(--text-main)' }}>stu001@ontime.college</strong></div>
+                <div>Pass: <strong style={{ color: 'var(--text-main)' }}>Student@123</strong></div>
+                <div style={{ marginTop: '0.35rem' }}>Barcode ID: <strong style={{ color: 'var(--primary-600)' }}>STU001</strong>. Views fines & pays online.</div>
               </div>
               <button
                 type="button"

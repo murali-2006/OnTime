@@ -37,24 +37,37 @@ const confirmLateRecord = async (req, res, next) => {
       });
     }
 
-    // Check duplicate arrival record for today (database safeguard)
+    // Central session-time logic: automatically determine applicable session based on server time
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    const dup = await lateRecordRepository.findDuplicateForDate(studentId, today);
+    const session = fineService.getSessionForTime(now);
+    const reportingTime = session.time;
+
+    // Check duplicate arrival record and 4-entry-per-day protection
+    const todayRecords = await lateRecordRepository.findRecordsForStudentAndDate(studentId, today);
+
+    if (todayRecords.length >= 4) {
+      return res.status(409).json({
+        success: false,
+        code: 'DAILY_LIMIT_REACHED',
+        message: "Maximum daily limit reached: 4 entries have already been recorded for this student today."
+      });
+    }
+
+    const dup = todayRecords.find(
+      (r) => r.reporting_time === reportingTime || r.session_name === session.name
+    );
 
     if (dup) {
       return res.status(409).json({
         success: false,
         code: 'DUPLICATE_ENTRY',
-        message: "Today's arrival has already been recorded for this student."
+        message: `Today's arrival for ${session.name} (${session.label}) has already been recorded for this student.`
       });
     }
 
     // Server-side calculation: source of truth
-    const settings = await fineService.getCollegeSettings();
-    const reportingTime = settings.reporting_time || '09:00:00';
     const arrivalTime = fineService.formatTimeString(now);
-
     const calculation = await fineService.calculateFine(reportingTime, arrivalTime);
 
     // Initial status:
@@ -66,6 +79,7 @@ const confirmLateRecord = async (req, res, next) => {
       student_id: student.id,
       staff_id: staffId,
       date: today,
+      session_name: session.name,
       reporting_time: reportingTime,
       arrival_time: arrivalTime,
       late_minutes: calculation.lateMinutes,

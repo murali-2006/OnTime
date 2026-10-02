@@ -117,11 +117,11 @@
     "1": {
       "id": 1,
       "user_id": 2,
-      "name": "Prof. Robert Jenkins",
+      "name": "Professor JD",
       "employee_id": "EMP202401",
       "department": "Computer Science & Engineering",
       "created_at": "2026-09-29T14:06:58.645Z",
-      "updated_at": "2026-09-29T14:06:58.645Z"
+      "updated_at": "2026-10-02T11:27:54.907Z"
     }
   },
   "college_settings": {
@@ -202,89 +202,6 @@
       "updated_at": "2026-09-29T14:06:58.645Z"
     }
   },
-  "late_records": {
-    "1": {
-      "id": 1,
-      "student_id": 1,
-      "staff_id": 1,
-      "date": "2026-09-27",
-      "reporting_time": "09:00:00",
-      "arrival_time": "09:23:00",
-      "late_minutes": 23,
-      "fine_amount": "30.00",
-      "status": "PAID",
-      "created_at": "2026-09-29T14:06:58.645Z",
-      "updated_at": "2026-09-29T14:06:58.645Z"
-    },
-    "2": {
-      "id": 2,
-      "student_id": 2,
-      "staff_id": 1,
-      "date": "2026-09-27",
-      "reporting_time": "09:00:00",
-      "arrival_time": "09:14:00",
-      "late_minutes": 14,
-      "fine_amount": "20.00",
-      "status": "PAID",
-      "created_at": "2026-09-29T14:06:58.645Z",
-      "updated_at": "2026-09-30T09:05:54.164Z"
-    },
-    "3": {
-      "id": 3,
-      "student_id": 3,
-      "staff_id": 1,
-      "date": "2026-09-29",
-      "reporting_time": "09:00:00",
-      "arrival_time": "13:40:10",
-      "late_minutes": 280,
-      "fine_amount": "100.00",
-      "status": "PAID",
-      "created_at": "2026-09-30T08:10:10.405Z",
-      "updated_at": "2026-09-30T08:13:48.586Z"
-    }
-  },
-  "payments": {
-    "1": {
-      "id": 1,
-      "late_record_id": 1,
-      "student_id": 1,
-      "amount": "30.00",
-      "payment_gateway": "RAZORPAY",
-      "transaction_id": "TXN_DEMO_20260928_001",
-      "gateway_order_id": "order_demo_1001",
-      "gateway_signature": null,
-      "status": "SUCCESS",
-      "paid_at": "2026-09-28T14:06:58.645Z",
-      "created_at": "2026-09-29T14:06:58.645Z",
-      "updated_at": "2026-09-29T14:06:58.645Z"
-    },
-    "2": {
-      "id": 2,
-      "late_record_id": 3,
-      "student_id": 3,
-      "amount": "100.00",
-      "payment_gateway": "RAZORPAY",
-      "transaction_id": "pay_mock_1790756023640_210",
-      "gateway_order_id": "order_test_1790756023619_1496",
-      "gateway_signature": "test_sig_983e789bdcaee05e9ee3f00a2d69f4d35172ef1712cb1f5bb8ba90510b828a42",
-      "status": "SUCCESS",
-      "paid_at": "2026-09-30T08:13:48.586Z",
-      "created_at": "2026-09-30T08:13:43.620Z",
-      "updated_at": "2026-09-30T08:13:48.586Z"
-    },
-    "3": {
-      "id": 3,
-      "late_record_id": 2,
-      "student_id": 2,
-      "amount": "20.00",
-      "payment_gateway": "RAZORPAY",
-      "transaction_id": "pay_mock_1790759151948_101",
-      "gateway_order_id": "order_test_1790759151929_5591",
-      "gateway_signature": "test_sig_e29ccdb1cb98909a086ff95fc18074d14e96a4290fdeb48d4a25d73990dde31e",
-      "status": "SUCCESS",
-      "paid_at": "2026-09-30T09:05:54.164Z",
-      "created_at": "2026-09-30T09:05:51.929Z",
-      "updated_at": "2026-09-30T09:05:54.164Z"
-    }
-  }
+  "late_records": {},
+  "payments": {}
 }

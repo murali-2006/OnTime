@@ -113,6 +113,20 @@ async function executeVerification() {
     const decoded = jwt.verify(token, config.jwtSecret);
     log('14. JWT auth & Role-based claims verification', decoded.role === 'ADMIN' && decoded.email === 'admin@ontime.college', { decodedRole: decoded.role });
 
+    // 15. Live Cloud Firestore write & read test
+    const testRecord = await lateRecordRepository.create({
+      student_id: 1,
+      date: '2026-10-01',
+      reporting_time: '09:00:00',
+      arrival_time: '09:15:00',
+      late_minutes: 15,
+      fine_amount: '20.00',
+      status: 'PENDING'
+    });
+    const fetchedRecord = await lateRecordRepository.findById(testRecord.id);
+    const writeReadPassed = Boolean(fetchedRecord && Number(fetchedRecord.late_minutes) === 15);
+    log('15. Live Cloud Firestore record creation & retrieval', writeReadPassed, { createdId: testRecord?.id, fetchedFine: fetchedRecord?.fine_amount });
+
   } catch (err) {
     checks.push({ title: 'Unexpected Verification Error', status: 'FAILED', error: err.message, stack: err.stack });
   }

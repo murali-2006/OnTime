@@ -122,7 +122,6 @@ const LateRecordsManagement = () => {
             <option value="">All Statuses</option>
             <option value="PENDING">PENDING</option>
             <option value="PAID">PAID</option>
-            <option value="WAIVED">WAIVED</option>
           </select>
         </div>
       </div>

@@ -78,8 +78,8 @@ const LoginPage = () => {
             }}>
               <Clock size={24} color="#fff" />
             </div>
-            <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '0.05em' }}>
-              ON<span style={{ color: 'var(--primary-500)' }}>TIME</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.05em' }}>
+              ON<span style={{ color: 'var(--primary-600)' }}>TIME</span>
             </span>
           </Link>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>

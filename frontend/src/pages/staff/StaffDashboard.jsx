@@ -53,7 +53,7 @@ const StaffDashboard = () => {
       {/* Header & Primary Gate Action */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Gate Attendance Officer Dashboard</h1>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Staff Dashboard</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Record student arrival times by scanning student ID card barcodes
           </p>

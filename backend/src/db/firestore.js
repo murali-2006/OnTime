@@ -2,21 +2,61 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../config');
 
-let admin;
+let initializeApp, cert, applicationDefault, getApps;
+let getFirestoreAdmin;
+
 try {
-  admin = require('firebase-admin');
+  ({ initializeApp, cert, applicationDefault, getApps } = require('firebase-admin/app'));
+  ({ getFirestore: getFirestoreAdmin } = require('firebase-admin/firestore'));
 } catch (e) {
-  console.warn('⚠️ firebase-admin module not loaded:', e.message);
+  console.warn('⚠️ firebase-admin modular SDK not loaded:', e.message);
 }
 
 let firestoreInstance = null;
 let isCloudFirestore = false;
 
-// Check if Firebase credentials exist in environment
+// Helper to locate service account key file
+const findServiceAccountKey = () => {
+  const candidates = [
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH && path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH),
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH && path.resolve(__dirname, '../../', process.env.FIREBASE_SERVICE_ACCOUNT_PATH),
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH && path.resolve(process.cwd(), process.env.FIREBASE_SERVICE_ACCOUNT_PATH),
+    path.resolve(__dirname, '../../serviceAccountKey.json'),
+    path.resolve(process.cwd(), 'serviceAccountKey.json'),
+    path.resolve(process.cwd(), 'backend/serviceAccountKey.json')
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  // Check if any *.json file in backend directory is a valid service account
+  try {
+    const backendDir = path.resolve(__dirname, '../../');
+    const files = fs.readdirSync(backendDir);
+    for (const file of files) {
+      if (file.endsWith('.json') && file !== 'package.json' && file !== 'package-lock.json') {
+        const fullPath = path.join(backendDir, file);
+        try {
+          const content = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+          if (content && content.type === 'service_account' && content.private_key) {
+            return fullPath;
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  return null;
+};
+
+// Check if Firebase credentials exist in environment or local key file
 const hasFirebaseCredentials = () => {
   return (
     Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON) ||
-    Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_PATH) ||
+    Boolean(findServiceAccountKey()) ||
     Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
     (Boolean(process.env.FIREBASE_PROJECT_ID) &&
       Boolean(process.env.FIREBASE_CLIENT_EMAIL) &&
@@ -25,45 +65,59 @@ const hasFirebaseCredentials = () => {
 };
 
 // Initialize Firebase Admin SDK
-const initFirebase = () => {
+const initFirebase = (options = { allowFallback: true }) => {
   if (firestoreInstance) return firestoreInstance;
 
-  if (admin && hasFirebaseCredentials()) {
+  if (initializeApp && cert && hasFirebaseCredentials()) {
     try {
       let credential;
+      let detectedProjectId = process.env.FIREBASE_PROJECT_ID;
+
+      const detectedKeyFile = findServiceAccountKey();
       if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-        const parsed = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-        credential = admin.credential.cert(parsed);
-      } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-        const keyPath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
-        const parsed = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
-        credential = admin.credential.cert(parsed);
+        const parsed = typeof process.env.FIREBASE_SERVICE_ACCOUNT_JSON === 'string'
+          ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+          : process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+        credential = cert(parsed);
+        detectedProjectId = detectedProjectId || parsed.project_id;
+      } else if (detectedKeyFile) {
+        const parsed = JSON.parse(fs.readFileSync(detectedKeyFile, 'utf8'));
+        credential = cert(parsed);
+        detectedProjectId = detectedProjectId || parsed.project_id;
+        console.log(`🔑 [Firebase]: Loaded service account key from: ${path.basename(detectedKeyFile)}`);
       } else if (
         process.env.FIREBASE_PROJECT_ID &&
         process.env.FIREBASE_CLIENT_EMAIL &&
         process.env.FIREBASE_PRIVATE_KEY
       ) {
-        credential = admin.credential.cert({
+        credential = cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
         });
-      } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-        credential = admin.credential.applicationDefault();
+      } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS && applicationDefault) {
+        credential = applicationDefault();
       }
 
-      if (!admin.apps.length) {
-        admin.initializeApp({ credential });
+      if (!getApps().length) {
+        initializeApp({
+          credential,
+          projectId: detectedProjectId || 'ontime-d56b5'
+        });
       }
 
-      firestoreInstance = admin.firestore();
+      firestoreInstance = getFirestoreAdmin();
       isCloudFirestore = true;
-      console.log('🔥 [Firebase]: Connected to Google Firebase Cloud Firestore successfully.');
+      console.log(`🔥 [Firebase]: Connected to Google Firebase Cloud Firestore successfully (Project: ${detectedProjectId || 'ontime-d56b5'}).`);
       return firestoreInstance;
     } catch (err) {
-      console.warn('⚠️ [Firebase Warning]: Could not initialize Cloud Firestore with provided credentials:', err.message);
-      console.warn('   Falling back to persistent local Firestore provider for development.');
+      console.error('❌ [Firebase Error]: Could not initialize Cloud Firestore with provided credentials:', err.message);
+      throw err;
     }
+  }
+
+  if (hasFirebaseCredentials() || (options && options.allowFallback === false)) {
+    throw new Error('Cloud Firestore initialization failed: Firebase credentials were provided but could not be initialized.');
   }
 
   // Persistent Local Firestore Provider (Zero external config required for local dev/testing)
@@ -314,10 +368,44 @@ function createLocalFirestoreProvider() {
   };
 }
 
+const getConnectionStatus = () => {
+  const detectedKeyFile = findServiceAccountKey();
+  let detectedProjectId = process.env.FIREBASE_PROJECT_ID;
+  if (detectedKeyFile) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(detectedKeyFile, 'utf8'));
+      detectedProjectId = detectedProjectId || parsed.project_id;
+    } catch (e) {}
+  }
+
+  const hasEnvVars = Boolean(
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  );
+  const hasJsonStr = Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  const hasGoogleApp = Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+
+  return {
+    isCloudFirestore,
+    configured: Boolean(detectedKeyFile || hasEnvVars || hasJsonStr || hasGoogleApp),
+    method: detectedKeyFile
+      ? `Service Account File: ${path.basename(detectedKeyFile)}`
+      : hasEnvVars
+      ? 'Environment Variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)'
+      : hasJsonStr
+      ? 'FIREBASE_SERVICE_ACCOUNT_JSON'
+      : hasGoogleApp
+      ? 'GOOGLE_APPLICATION_CREDENTIALS'
+      : 'Local persistent provider (Zero external config)',
+    keyFilePath: detectedKeyFile ? detectedKeyFile : null,
+    projectId: detectedProjectId || 'ontime-d56b5'
+  };
+};
+
 module.exports = {
   getFirestore: initFirebase,
-  get admin() {
-    return admin;
-  },
-  isCloud: () => isCloudFirestore
+  isCloud: () => isCloudFirestore,
+  getConnectionStatus,
+  findServiceAccountKey
 };

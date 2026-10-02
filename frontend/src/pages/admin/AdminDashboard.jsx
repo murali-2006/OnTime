@@ -8,8 +8,7 @@ import {
   IndianRupee,
   Sliders,
   Settings,
-  ChevronRight,
-  RefreshCw
+  ChevronRight
 } from 'lucide-react';
 import api from '../../services/api';
 import StatCard from '../../components/StatCard';
@@ -42,21 +41,11 @@ const AdminDashboard = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Page Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Administrator Overview</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Live attendance monitoring, late arrival statistics, and fine collections
-          </p>
-        </div>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={fetchDashboardData}
-          disabled={loading}
-        >
-          <RefreshCw size={15} className={loading ? 'spin' : ''} /> Refresh Data
-        </button>
+      <div>
+        <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Administrator Overview</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          Live attendance monitoring, late arrival statistics, and fine collections
+        </p>
       </div>
 
       {error && (
