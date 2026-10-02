@@ -1007,6 +1007,7 @@ html, body {
 
 /* ====================================================================
    2. MOBILE LAYOUT (< 768px: 320px, 360px, 375px, 390px, 414px, 430px)
+   STRICTLY MOBILE-ONLY: ZERO IMPACT ON DESKTOP (>= 768px)
    ==================================================================== */
 @media (max-width: 767px) {
   /* App Shell Container */
@@ -1036,7 +1037,7 @@ html, body {
     padding: 0.45rem;
   }
 
-  /* Mobile Drawer Navigation */
+  /* Mobile Drawer Navigation: Fixed to viewport when opened */
   .app-container .sidebar {
     position: fixed !important;
     top: 0;
@@ -1058,37 +1059,86 @@ html, body {
     transform: translateX(0) !important;
   }
 
-  /* Mobile Sticky Top Navbar */
+  /* Mobile FIXED Top Navbar: Fixed at the top while scrolling, height 68px, 16-20px padding */
   .app-container .navbar {
-    position: sticky !important;
+    position: fixed !important;
     top: 0;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
-    height: 64px;
+    height: 68px !important;
     z-index: 40;
-    padding: 0 1.15rem;
+    padding: 0 1.15rem !important; /* ~18px horizontal padding */
     background: var(--bg-sidebar);
     border-bottom: 1px solid var(--border-sidebar);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
   }
 
-  /* Mobile Page Content Padding: 16px - 20px (Comfortable, Not Cramped) */
+  /* Main content starts BELOW fixed navbar with comfortable 16-20px top spacing and padding */
   .app-container .content-body {
-    margin-top: 0 !important;
-    padding: 1.25rem 1.15rem; /* ~20px vertical, 18px horizontal */
+    margin-top: 68px !important;
+    padding: 1.15rem 1.15rem 2rem 1.15rem !important; /* ~18px top spacing, ~18px horizontal */
     width: 100%;
     max-width: 100vw;
     box-sizing: border-box;
     min-width: 0;
   }
 
-  /* Mobile Vertical Spacing & Card Padding (16px - 24px) */
+  /* Navbar Elements: Approximately 10-14px gap and vertical centering */
+  .navbar-brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px !important;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px !important;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    min-width: 0;
+  }
+
+  .user-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    padding: 0.35rem 0.65rem;
+    min-width: 0;
+    max-width: 135px;
+  }
+
+  .user-profile-name {
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-profile-role {
+    display: none;
+  }
+
+  .navbar-logout-text {
+    display: none !important;
+  }
+
+  /* Mobile Section/Card Spacing (16px - 24px) */
   .dashboard-grid {
     grid-template-columns: 1fr !important;
-    gap: 1.15rem;
+    gap: 1.25rem;
     margin-bottom: 1.5rem;
   }
 
@@ -1112,7 +1162,7 @@ html, body {
     min-width: 44px;
   }
 
-  /* Mobile Administrative Controls: 1 column, generous touch target */
+  /* Mobile Administrative Controls: 1 column, comfortable 10-16px spacing */
   .admin-controls-grid {
     grid-template-columns: 1fr !important;
     gap: 0.85rem;
@@ -1120,7 +1170,19 @@ html, body {
 
   .admin-control-btn {
     padding: 0.85rem 1.15rem !important;
-    min-height: 46px;
+    min-height: 48px;
+  }
+
+  /* Mobile Form Controls */
+  input, select, textarea, .form-input, .form-select {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Stack inline minmax grids to 1 column */
@@ -1138,24 +1200,6 @@ html, body {
 
   .card-header > div:first-child {
     width: 100%;
-  }
-
-  .navbar-logout-text {
-    display: none !important;
-  }
-
-  .user-profile-badge {
-    padding: 0.35rem 0.65rem;
-    gap: 0.5rem;
-    max-width: 140px;
-  }
-
-  .user-profile-name {
-    max-width: 85px;
-  }
-
-  .user-profile-role {
-    display: none;
   }
 
   .receipt-card {
@@ -1193,17 +1237,26 @@ html, body {
 /* Compact Mobile Devices (max-width: 360px - 320px) */
 @media (max-width: 360px) {
   .app-container .navbar {
-    padding: 0 0.75rem;
-    height: 60px;
+    height: 64px !important;
+    padding: 0 1rem !important; /* 16px */
+  }
+
+  .app-container .content-body {
+    margin-top: 64px !important;
+    padding: 1rem 1rem 1.5rem 1rem !important; /* 16px */
   }
 
   .navbar-brand-group {
-    gap: 0.35rem;
+    gap: 10px !important;
+  }
+
+  .navbar-actions {
+    gap: 10px !important;
   }
 
   .navbar-brand {
+    gap: 6px !important;
     font-size: 1.1rem;
-    gap: 0.35rem;
   }
 
   .navbar-brand > div {
@@ -1217,17 +1270,14 @@ html, body {
   }
 
   .brand-badge {
-    font-size: 0.6rem;
-    padding: 0.12rem 0.38rem;
-  }
-
-  .navbar-actions {
-    gap: 0.35rem;
+    font-size: 0.62rem;
+    padding: 0.12rem 0.4rem;
   }
 
   .user-profile-badge {
     padding: 0.25rem 0.45rem;
-    max-width: 95px;
+    max-width: 90px;
+    gap: 6px !important;
   }
 
   .user-avatar {
@@ -1237,16 +1287,12 @@ html, body {
   }
 
   .user-profile-name {
-    max-width: 55px;
+    max-width: 48px;
     font-size: 0.75rem;
   }
 
-  .app-container .content-body {
-    padding: 1rem 0.85rem; /* ~14px-16px */
-  }
-
   .card {
-    padding: 1.1rem;
+    padding: 1.15rem;
   }
 
   .stat-value {
@@ -1254,7 +1300,7 @@ html, body {
   }
 
   .receipt-card {
-    padding: 1rem !important;
+    padding: 1.1rem !important;
   }
 }
 
