@@ -801,6 +801,12 @@ html, body {
   min-width: 0;
 }
 
+.navbar-logo-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .user-profile-badge {
   display: flex;
   align-items: center;
@@ -1087,13 +1093,18 @@ html, body {
     min-width: 0;
   }
 
-  /* Navbar Elements: Approximately 10-14px gap and vertical centering */
+  /* Navbar Elements: Space re-aligned with branding removed on mobile */
   .navbar-brand-group {
     display: flex;
     align-items: center;
     gap: 12px !important;
     min-width: 0;
-    flex-shrink: 1;
+    flex-shrink: 0;
+  }
+
+  /* STRICT MOBILE-ONLY: Remove ON TIME logo and text branding from mobile navbar */
+  .navbar-logo-area {
+    display: none !important;
   }
 
   .navbar-actions {
@@ -1105,10 +1116,19 @@ html, body {
   }
 
   .navbar-brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px !important;
     min-width: 0;
+    text-decoration: none;
+  }
+
+  .navbar-role-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem !important;
+    padding: 0.22rem 0.55rem !important;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 
   .user-profile-badge {
@@ -1117,11 +1137,11 @@ html, body {
     gap: 10px !important;
     padding: 0.35rem 0.65rem;
     min-width: 0;
-    max-width: 135px;
+    max-width: 160px;
   }
 
   .user-profile-name {
-    max-width: 80px;
+    max-width: 110px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1247,47 +1267,36 @@ html, body {
   }
 
   .navbar-brand-group {
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .navbar-actions {
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .navbar-brand {
-    gap: 6px !important;
-    font-size: 1.1rem;
-  }
-
-  .navbar-brand > div {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  .navbar-brand > div svg {
-    width: 16px !important;
-    height: 16px !important;
+    gap: 0 !important;
   }
 
   .brand-badge {
-    font-size: 0.62rem;
-    padding: 0.12rem 0.4rem;
+    font-size: 0.65rem !important;
+    padding: 0.18rem 0.45rem !important;
   }
 
   .user-profile-badge {
-    padding: 0.25rem 0.45rem;
-    max-width: 90px;
+    padding: 0.25rem 0.5rem;
+    max-width: 125px;
     gap: 6px !important;
   }
 
   .user-avatar {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     font-size: 0.75rem;
   }
 
   .user-profile-name {
-    max-width: 48px;
+    max-width: 75px;
     font-size: 0.75rem;
   }
 

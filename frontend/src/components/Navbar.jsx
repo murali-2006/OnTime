@@ -37,20 +37,22 @@ const Navbar = ({ onToggleSidebar }) => {
         )}
 
         <Link to="/" className="navbar-brand">
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--primary-600), var(--accent-cyan))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 12px rgba(37,99,235,0.4)',
-            flexShrink: 0
-          }}>
-            <Clock size={20} color="#fff" />
-          </div>
-          <span>ON<span style={{ color: 'var(--primary-500)' }}>TIME</span></span>
+          <span className="navbar-logo-area">
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, var(--primary-600), var(--accent-cyan))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 12px rgba(37,99,235,0.4)',
+              flexShrink: 0
+            }}>
+              <Clock size={20} color="#fff" />
+            </div>
+            <span>ON<span style={{ color: 'var(--primary-500)' }}>TIME</span></span>
+          </span>
           <span className="brand-badge navbar-role-badge">{role || 'System'}</span>
         </Link>
       </div>
