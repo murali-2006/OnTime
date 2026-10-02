@@ -50,12 +50,12 @@ const BarcodeRenderer = ({ value = 'STU001', width = 240, height = 70, showText 
   const barHeight = height - (showText ? 22 : 4);
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', background: '#fff', padding: '10px 14px', borderRadius: '8px' }}>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', background: '#fff', padding: '10px 14px', borderRadius: '8px', maxWidth: '100%', boxSizing: 'border-box' }}>
       <svg
         viewBox={`0 0 ${totalWidth} ${height}`}
         width={width}
         height={height}
-        style={{ display: 'block', maxWidth: '100%' }}
+        style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
       >
         <rect width={totalWidth} height={height} fill="#ffffff" />
         {elements.map((bar, idx) => (

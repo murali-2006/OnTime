@@ -23,11 +23,11 @@ const Navbar = ({ onToggleSidebar }) => {
 
   return (
     <header className="navbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="navbar-brand-group">
         {onToggleSidebar && (
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm navbar-menu-btn"
             onClick={onToggleSidebar}
             style={{ display: 'inline-flex', padding: '0.4rem', border: 'none' }}
             title="Toggle Menu"
@@ -45,12 +45,13 @@ const Navbar = ({ onToggleSidebar }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 12px rgba(37,99,235,0.4)'
+            boxShadow: '0 0 12px rgba(37,99,235,0.4)',
+            flexShrink: 0
           }}>
             <Clock size={20} color="#fff" />
           </div>
           <span>ON<span style={{ color: 'var(--primary-500)' }}>TIME</span></span>
-          <span className="brand-badge">{role || 'System'}</span>
+          <span className="brand-badge navbar-role-badge">{role || 'System'}</span>
         </Link>
       </div>
 
@@ -61,11 +62,11 @@ const Navbar = ({ onToggleSidebar }) => {
               <div className="user-avatar">
                 {user.email ? user.email[0].toUpperCase() : 'U'}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.85rem' }}>
+              <div className="user-profile-text">
+                <span className="user-profile-name">
                   {role === 'STAFF' ? (user.profile?.name || 'Professor JD') : (user.profile?.name || user.email.split('@')[0])}
                 </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <span className="user-profile-role">
                   {getRoleDisplayName(role)}
                 </span>
               </div>
@@ -73,12 +74,12 @@ const Navbar = ({ onToggleSidebar }) => {
 
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-sm navbar-logout-btn"
               onClick={handleLogout}
               title="Sign Out"
             >
               <LogOut size={16} />
-              <span style={{ display: 'none', md: 'inline' }}>Sign Out</span>
+              <span className="navbar-logout-text">Sign Out</span>
             </button>
           </>
         ) : (

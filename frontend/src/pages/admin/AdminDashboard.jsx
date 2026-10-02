@@ -94,37 +94,41 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Action Navigation Shortcuts */}
-      <div className="card" style={{ background: 'var(--bg-input)', padding: '1.25rem' }}>
+      <div className="card admin-controls-card" style={{ background: 'var(--bg-input)', padding: '1.25rem' }}>
         <h3 style={{ fontSize: '0.95rem', marginBottom: '1rem', color: 'var(--text-muted)' }}>
           ADMINISTRATIVE CONTROLS
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-          <Link to="/admin/students" className="btn btn-secondary" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Users size={16} color="var(--primary-500)" /> Student Directory
+        <div className="admin-controls-grid">
+          <Link to="/admin/students" className="btn btn-secondary admin-control-btn">
+            <span className="admin-control-label">
+              <Users size={16} color="var(--primary-500)" style={{ flexShrink: 0 }} />
+              <span>Student Directory</span>
             </span>
-            <ChevronRight size={16} />
+            <ChevronRight size={16} style={{ flexShrink: 0 }} />
           </Link>
 
-          <Link to="/admin/fine-rules" className="btn btn-secondary" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Sliders size={16} color="var(--accent-purple)" /> Configure Fine Rules
+          <Link to="/admin/fine-rules" className="btn btn-secondary admin-control-btn">
+            <span className="admin-control-label">
+              <Sliders size={16} color="var(--accent-purple)" style={{ flexShrink: 0 }} />
+              <span>Configure Fine Rules</span>
             </span>
-            <ChevronRight size={16} />
+            <ChevronRight size={16} style={{ flexShrink: 0 }} />
           </Link>
 
-          <Link to="/admin/settings" className="btn btn-secondary" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Settings size={16} color="var(--accent-cyan)" /> Reporting Time Settings
+          <Link to="/admin/settings" className="btn btn-secondary admin-control-btn">
+            <span className="admin-control-label">
+              <Settings size={16} color="var(--accent-cyan)" style={{ flexShrink: 0 }} />
+              <span>Reporting Time Settings</span>
             </span>
-            <ChevronRight size={16} />
+            <ChevronRight size={16} style={{ flexShrink: 0 }} />
           </Link>
 
-          <Link to="/admin/late-records" className="btn btn-secondary" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Clock size={16} color="#f59e0b" /> View All Late Records
+          <Link to="/admin/late-records" className="btn btn-secondary admin-control-btn">
+            <span className="admin-control-label">
+              <Clock size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
+              <span>View All Late Records</span>
             </span>
-            <ChevronRight size={16} />
+            <ChevronRight size={16} style={{ flexShrink: 0 }} />
           </Link>
         </div>
       </div>
