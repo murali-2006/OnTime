@@ -1440,8 +1440,8 @@ html, body {
    ==================================================================== */
 
 /* Ensure strong contrast for table cell values, card texts, and headings in light mode */
-.card [style*="color: #fff"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
-.card [style*="color: rgb(255, 255, 255)"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
+.card:not(.student-id-card) [style*="color: #fff"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
+.card:not(.student-id-card) [style*="color: rgb(255, 255, 255)"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
 .table-container [style*="color: #fff"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
 .table-container [style*="color: rgb(255, 255, 255)"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
 .modal-content [style*="color: #fff"]:not(.btn *):not(.badge *):not([class*="btn"]):not([class*="badge"]),
@@ -1479,13 +1479,29 @@ td .brand-badge {
 }
 
 /* Digital student ID smartcard in StudentProfile */
-.card.receipt-card {
+.student-id-card,
+.card.student-id-card,
+.card.receipt-card.student-id-card {
   background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%) !important;
   border-color: rgba(37, 99, 235, 0.4) !important;
-}
-.card.receipt-card [style*="color: #fff"],
-.card.receipt-card [style*="color: rgb(255, 255, 255)"] {
   color: #ffffff !important;
+}
+.student-id-card h2,
+.card.student-id-card h2,
+.student-id-card .id-card-value,
+.card.student-id-card .id-card-value,
+.student-id-card [style*="color: #fff"],
+.student-id-card [style*="color: #ffffff"],
+.student-id-card [style*="color: rgb(255, 255, 255)"],
+.card.student-id-card [style*="color: #fff"],
+.card.student-id-card [style*="color: #ffffff"],
+.card.student-id-card [style*="color: rgb(255, 255, 255)"] {
+  color: #ffffff !important;
+}
+
+.student-id-card .id-card-barcode-val,
+.card.student-id-card .id-card-barcode-val {
+  color: #0f172a !important;
 }
 
 /* Official printed receipt in PaymentReceipt */

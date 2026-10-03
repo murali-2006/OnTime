@@ -104,7 +104,7 @@ const PaymentReceipt = () => {
             </div>
             <div>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
-                ONTIME COLLEGE OF ENGINEERING
+                Jai Shriram College Of Engineering
               </h2>
               <span style={{ fontSize: '0.8rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
                 Late Attendance Fine Payment Receipt
