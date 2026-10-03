@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
+import { formatISTDateTime } from '../../utils/timeUtils';
 
 const StudentPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -109,7 +110,7 @@ const StudentPayments = () => {
                       {p.transaction_id || 'SUCCESS'}
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {p.paid_at ? new Date(p.paid_at).toLocaleString() : 'Completed'}
+                      {p.paid_at ? formatISTDateTime(p.paid_at) : 'Completed'}
                     </td>
                     <td>
                       <Badge status="PAID" />

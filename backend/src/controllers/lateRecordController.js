@@ -37,11 +37,11 @@ const confirmLateRecord = async (req, res, next) => {
       });
     }
 
-    // Central session-time logic: automatically determine applicable session based on server time
+    // Central session-time logic: automatically determine applicable session based on server time in Asia/Kolkata
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    const today = fineService.getIndiaTodayStr(now);
     const session = fineService.getSessionForTime(now);
-    const reportingTime = session.time;
+    const reportingTime = session.label; // Strictly 12-hour AM/PM format (e.g. "9:00 AM", "11:00 AM", "1:15 PM", "3:00 PM")
 
     // Check duplicate arrival record and 4-entry-per-day protection
     const todayRecords = await lateRecordRepository.findRecordsForStudentAndDate(studentId, today);
@@ -55,7 +55,7 @@ const confirmLateRecord = async (req, res, next) => {
     }
 
     const dup = todayRecords.find(
-      (r) => r.reporting_time === reportingTime || r.session_name === session.name
+      (r) => r.session_name === session.name || r.reporting_time === reportingTime || r.reporting_time === session.time || r.reporting_time === session.label
     );
 
     if (dup) {
@@ -66,8 +66,8 @@ const confirmLateRecord = async (req, res, next) => {
       });
     }
 
-    // Server-side calculation: source of truth
-    const arrivalTime = fineService.formatTimeString(now);
+    // Server-side calculation: source of truth in India Standard Time (12-hour AM/PM)
+    const arrivalTime = fineService.format12HourTime(now);
     const calculation = await fineService.calculateFine(reportingTime, arrivalTime);
 
     // Initial status:

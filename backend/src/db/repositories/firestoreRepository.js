@@ -1,4 +1,5 @@
 const { getFirestore } = require('../firestore');
+const { getIndiaTodayStr } = require('../../utils/indiaTime');
 
 const db = () => getFirestore();
 
@@ -399,7 +400,7 @@ const lateRecordRepository = {
   async create(data) {
     const nextId = await getNextId('late_records');
     const now = new Date().toISOString();
-    const dateStr = data.date || now.split('T')[0];
+    const dateStr = data.date || getIndiaTodayStr();
 
     const record = {
       id: nextId,
@@ -554,7 +555,7 @@ const lateRecordRepository = {
   },
 
   async resetTodayDemoRecords({ studentId = null, dateStr = null } = {}) {
-    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    const targetDate = dateStr || getIndiaTodayStr();
     const snapshot = await db().collection('late_records').get();
     const deletedLateRecordIds = [];
 
@@ -744,7 +745,7 @@ const paymentRepository = {
 // ==========================================
 const dashboardRepository = {
   async getStats() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getIndiaTodayStr();
 
     // Students
     const allStudents = await studentRepository.findAll();
@@ -773,7 +774,7 @@ const dashboardRepository = {
 
     const successPayments = payments.filter((p) => p.status === 'SUCCESS');
     const todayPayments = successPayments.filter((p) => {
-      const paidDate = p.paid_at ? (p.paid_at.includes('T') ? p.paid_at.split('T')[0] : p.paid_at) : '';
+      const paidDate = p.paid_at ? getIndiaTodayStr(new Date(p.paid_at)) : '';
       return paidDate === today;
     });
 
@@ -799,7 +800,7 @@ const dashboardRepository = {
           department: s ? s.department : ''
         };
       })
-      .sort((a, b) => (b.arrival_time || '').localeCompare(a.arrival_time || ''))
+      .sort((a, b) => (b.created_at || b.arrival_time || '').localeCompare(a.created_at || a.arrival_time || ''))
       .slice(0, 10);
 
     // Department breakdown

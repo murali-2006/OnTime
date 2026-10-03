@@ -15,6 +15,7 @@ import api from '../../services/api';
 import StatCard from '../../components/StatCard';
 import Badge from '../../components/Badge';
 import BarcodeRenderer from '../../components/BarcodeRenderer';
+import { formatISTTime } from '../../utils/timeUtils';
 
 const StudentDashboard = () => {
   const [profileData, setProfileData] = useState(null);
@@ -106,10 +107,10 @@ const StudentDashboard = () => {
                 {todayRecord ? (
                   todayRecord.late_minutes > 0 ? (
                     <span>
-                      Arrived at <strong style={{ color: 'var(--text-main)' }}>{todayRecord.arrival_time}</strong> — Late by <strong style={{ color: '#f59e0b' }}>{todayRecord.late_minutes} minutes</strong> (Fine: ₹{parseFloat(todayRecord.fine_amount).toFixed(2)})
+                      Arrived at <strong style={{ color: 'var(--text-main)' }}>{formatISTTime(todayRecord.arrival_time)}</strong> — Late by <strong style={{ color: '#f59e0b' }}>{todayRecord.late_minutes} minutes</strong> (Fine: ₹{parseFloat(todayRecord.fine_amount).toFixed(2)})
                     </span>
                   ) : (
-                    <span>Arrived on time at <strong style={{ color: '#10b981' }}>{todayRecord.arrival_time}</strong>. No fine applied.</span>
+                    <span>Arrived on time at <strong style={{ color: '#10b981' }}>{formatISTTime(todayRecord.arrival_time)}</strong>. No fine applied.</span>
                   )
                 ) : (
                   'No gate scan recorded for today yet. Scan your ID barcode at the college gate.'

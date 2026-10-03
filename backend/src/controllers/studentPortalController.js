@@ -4,6 +4,7 @@ const {
   lateRecordRepository,
   paymentRepository
 } = require('../db/repositories/firestoreRepository');
+const { getIndiaTodayStr } = require('../utils/indiaTime');
 
 /**
  * Get logged-in student's complete profile
@@ -37,8 +38,8 @@ const getProfile = async (req, res, next) => {
     const paidRecords = records.filter((r) => r.status === 'PAID');
     const paidFinesSum = paidRecords.reduce((sum, r) => sum + parseFloat(r.fine_amount || 0), 0);
 
-    // Today's arrival record if any
-    const today = new Date().toISOString().split('T')[0];
+    // Today's arrival record if any in Asia/Kolkata
+    const today = getIndiaTodayStr();
     const todayRecord = await lateRecordRepository.findDuplicateForDate(studentProfile.id, today);
 
     res.json({

@@ -27,11 +27,11 @@ const scanStudent = async (req, res, next) => {
       });
     }
 
-    // 3. Central session-time logic: automatically determine applicable session based on server time
+    // 3. Central session-time logic: automatically determine applicable session based on server time in Asia/Kolkata
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    const today = fineService.getIndiaTodayStr(now);
     const session = fineService.getSessionForTime(now);
-    const reportingTime = session.time;
+    const reportingTime = session.label; // Strictly 12-hour AM/PM format (e.g. "9:00 AM", "11:00 AM", "1:15 PM", "3:00 PM")
 
     // 4. Duplicate scan & 4-entry-per-day protection
     const todayRecords = await lateRecordRepository.findRecordsForStudentAndDate(student.id, today);
@@ -55,7 +55,7 @@ const scanStudent = async (req, res, next) => {
 
     // Check if an arrival record already exists for the CURRENT session today
     const existing = todayRecords.find(
-      (r) => r.reporting_time === reportingTime || r.session_name === session.name
+      (r) => r.session_name === session.name || r.reporting_time === reportingTime || r.reporting_time === session.time || r.reporting_time === session.label
     );
 
     if (existing) {
@@ -66,7 +66,7 @@ const scanStudent = async (req, res, next) => {
         existingRecord: {
           id: existing.id,
           sessionName: existing.session_name || session.name,
-          arrivalTime: existing.arrival_time,
+          arrivalTime: fineService.format12HourTime(existing.arrival_time),
           lateMinutes: existing.late_minutes,
           fineAmount: existing.fine_amount,
           status: existing.status,
@@ -83,8 +83,8 @@ const scanStudent = async (req, res, next) => {
       });
     }
 
-    // 5. Backend/server time is source of truth for arrival time
-    const arrivalTime = fineService.formatTimeString(now);
+    // 5. Backend/server time is source of truth for arrival time in India Standard Time (12-hour AM/PM)
+    const arrivalTime = fineService.format12HourTime(now);
 
     // 6. Calculate late duration and fine amount based on database fine rules
     const calculation = await fineService.calculateFine(reportingTime, arrivalTime);

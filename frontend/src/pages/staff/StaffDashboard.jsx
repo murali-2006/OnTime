@@ -12,6 +12,7 @@ import {
 import api from '../../services/api';
 import StatCard from '../../components/StatCard';
 import Badge from '../../components/Badge';
+import { formatISTTime, getIndiaTodayStr } from '../../utils/timeUtils';
 
 const StaffDashboard = () => {
   const [data, setData] = useState(null);
@@ -20,8 +21,8 @@ const StaffDashboard = () => {
   const fetchStaffData = async () => {
     setLoading(true);
     try {
-      // Fetch today's records
-      const todayStr = new Date().toISOString().split('T')[0];
+      // Fetch today's records in Asia/Kolkata
+      const todayStr = getIndiaTodayStr();
       const res = await api.get('/late-records', { params: { date: todayStr } });
       if (res.success) {
         const records = res.records || [];
@@ -134,7 +135,7 @@ const StaffDashboard = () => {
                       {rec.register_number}
                     </td>
                     <td>{rec.department}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{rec.arrival_time}</td>
+                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(rec.arrival_time)}</td>
                     <td>
                       <span style={{ color: rec.late_minutes > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>
                         {rec.late_minutes > 0 ? `${rec.late_minutes} min late` : 'On Time'}

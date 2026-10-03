@@ -15,6 +15,7 @@ import api from '../../services/api';
 import CameraScanner from '../../components/CameraScanner';
 import Badge from '../../components/Badge';
 import Toast from '../../components/Toast';
+import { formatISTTime } from '../../utils/timeUtils';
 
 const ScanPage = () => {
   const [scanResult, setScanResult] = useState(null);
@@ -146,7 +147,7 @@ const ScanPage = () => {
               )}
               {scanError.existingRecord && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '0.25rem' }}>
-                  Previously recorded at: {scanError.existingRecord.arrivalTime} | Late by: {scanError.existingRecord.lateMinutes} min | Status: {scanError.existingRecord.status}
+                  Previously recorded at: {formatISTTime(scanError.existingRecord.arrivalTime)} | Late by: {scanError.existingRecord.lateMinutes} min | Status: {scanError.existingRecord.status}
                 </p>
               )}
             </div>
@@ -193,17 +194,17 @@ const ScanPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <div className="card" style={{ padding: '1rem', textAlign: 'center', background: 'var(--bg-main)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {scanResult.sessionName ? `${scanResult.sessionName} (${scanResult.sessionLabel})` : 'Reporting Baseline'}
+                {scanResult.sessionName ? `${scanResult.sessionName} (${scanResult.sessionLabel || formatISTTime(scanResult.reportingTime)})` : 'Reporting Baseline'}
               </span>
               <p style={{ fontFamily: 'monospace', fontSize: '1.25rem', fontWeight: 700, marginTop: '0.25rem' }}>
-                {scanResult.reportingTime}
+                {formatISTTime(scanResult.reportingTime)}
               </p>
             </div>
 
             <div className="card" style={{ padding: '1rem', textAlign: 'center', background: 'var(--bg-main)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gate Arrival Time</span>
               <p style={{ fontFamily: 'monospace', fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary-400)', marginTop: '0.25rem' }}>
-                {scanResult.arrivalTime}
+                {formatISTTime(scanResult.arrivalTime)}
               </p>
             </div>
 

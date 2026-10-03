@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
+import { formatISTTime } from '../../utils/timeUtils';
 
 const StaffLateRecords = () => {
   const [records, setRecords] = useState([]);
@@ -113,8 +114,8 @@ const StaffLateRecords = () => {
                     <td style={{ fontWeight: 600 }}>{r.student_name}</td>
                     <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{r.register_number}</td>
                     <td>{r.department}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{r.reporting_time}</td>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.arrival_time}</td>
+                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(r.reporting_time)}</td>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatISTTime(r.arrival_time)}</td>
                     <td>
                       <span style={{ color: r.late_minutes > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>
                         {r.late_minutes > 0 ? `${r.late_minutes} min late` : 'On Time'}

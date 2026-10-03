@@ -15,6 +15,7 @@ import api from '../../services/api';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Toast from '../../components/Toast';
+import { formatISTTime, formatISTDateTime } from '../../utils/timeUtils';
 
 const StudentFines = () => {
   const [pendingFines, setPendingFines] = useState([]);
@@ -160,8 +161,8 @@ const StudentFines = () => {
                 pendingFines.map((fine) => (
                   <tr key={fine.id}>
                     <td style={{ fontWeight: 600 }}>{fine.date ? fine.date.split('T')[0] : ''}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{fine.reporting_time}</td>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{fine.arrival_time}</td>
+                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(fine.reporting_time)}</td>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatISTTime(fine.arrival_time)}</td>
                     <td>
                       <span style={{ color: '#f59e0b', fontWeight: 600 }}>
                         {fine.late_minutes} minutes
@@ -243,7 +244,7 @@ const StudentFines = () => {
                       {paid.transaction_id || 'VERIFIED'}
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {paid.paid_at ? new Date(paid.paid_at).toLocaleDateString() : 'Paid'}
+                      {paid.paid_at ? formatISTDateTime(paid.paid_at) : 'Paid'}
                     </td>
                     <td>
                       <Badge status="PAID" />

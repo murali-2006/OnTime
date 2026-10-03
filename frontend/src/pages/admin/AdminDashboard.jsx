@@ -13,6 +13,7 @@ import {
 import api from '../../services/api';
 import StatCard from '../../components/StatCard';
 import Badge from '../../components/Badge';
+import { formatISTTime } from '../../utils/timeUtils';
 
 const AdminDashboard = () => {
   const [data, setData] = useState(null);
@@ -173,7 +174,7 @@ const AdminDashboard = () => {
                       {rec.register_number}
                     </td>
                     <td>{rec.department}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{rec.arrival_time}</td>
+                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(rec.arrival_time)}</td>
                     <td>
                       <span style={{ color: '#f59e0b', fontWeight: 600 }}>
                         {rec.late_minutes} min late

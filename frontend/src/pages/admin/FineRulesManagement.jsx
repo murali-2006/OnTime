@@ -12,6 +12,7 @@ import api from '../../services/api';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Toast from '../../components/Toast';
+import { formatISTDate } from '../../utils/timeUtils';
 
 const FineRulesManagement = () => {
   const [rules, setRules] = useState([]);
@@ -196,7 +197,7 @@ const FineRulesManagement = () => {
                       <Badge status={rule.active ? 'ACTIVE' : 'INACTIVE'} />
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      {new Date(rule.created_at).toLocaleDateString()}
+                      {formatISTDate(rule.created_at)}
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '0.5rem' }}>

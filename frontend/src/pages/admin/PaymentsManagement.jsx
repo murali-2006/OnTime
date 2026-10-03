@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
+import { formatISTDateTime } from '../../utils/timeUtils';
 
 const PaymentsManagement = () => {
   const [payments, setPayments] = useState([]);
@@ -133,7 +134,7 @@ const PaymentsManagement = () => {
                       <Badge status={p.status} />
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {p.paid_at ? new Date(p.paid_at).toLocaleString() : new Date(p.created_at).toLocaleString()}
+                      {formatISTDateTime(p.paid_at || p.created_at)}
                     </td>
                   </tr>
                 ))

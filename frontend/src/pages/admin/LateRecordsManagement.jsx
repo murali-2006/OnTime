@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
+import { formatISTTime, getIndiaTodayStr } from '../../utils/timeUtils';
 
 const LateRecordsManagement = () => {
   const [records, setRecords] = useState([]);
@@ -52,8 +53,8 @@ const LateRecordsManagement = () => {
       `"${r.student_name}"`,
       `"${r.register_number}"`,
       `"${r.department}"`,
-      r.reporting_time,
-      r.arrival_time,
+      formatISTTime(r.reporting_time),
+      formatISTTime(r.arrival_time),
       r.late_minutes,
       r.fine_amount,
       r.status
@@ -62,7 +63,7 @@ const LateRecordsManagement = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `ontime_late_records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `ontime_late_records_${getIndiaTodayStr()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -169,8 +170,8 @@ const LateRecordsManagement = () => {
                       {r.register_number}
                     </td>
                     <td>{r.department}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{r.reporting_time}</td>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.arrival_time}</td>
+                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(r.reporting_time)}</td>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatISTTime(r.arrival_time)}</td>
                     <td>
                       <span style={{ color: r.late_minutes > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>
                         {r.late_minutes > 0 ? `${r.late_minutes} min` : 'On Time'}

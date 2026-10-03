@@ -14,7 +14,8 @@ import Modal from '../../components/Modal';
 import {
   SESSION_TIMINGS,
   getSessionForTime,
-  calculateLateDuration
+  calculateLateDuration,
+  formatISTTime
 } from '../../utils/timeUtils';
 
 const SettingsPage = () => {
@@ -207,9 +208,6 @@ const SettingsPage = () => {
                 <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', fontFamily: 'monospace', margin: '0.15rem 0' }}>
                   {s.label}
                 </p>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
-                  24-Hr: {s.time}
-                </span>
               </div>
             );
           })}
@@ -303,12 +301,7 @@ const SettingsPage = () => {
                 className="btn btn-secondary btn-sm"
                 style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
                 onClick={() => {
-                  const now = new Date();
-                  const h = now.getHours();
-                  const m = String(now.getMinutes()).padStart(2, '0');
-                  const meridiem = h >= 12 ? 'PM' : 'AM';
-                  const dispH = h % 12 || 12;
-                  setTestArrivalTime(`${dispH}:${m} ${meridiem}`);
+                  setTestArrivalTime(formatISTTime(new Date()));
                 }}
               >
                 Use Current Time

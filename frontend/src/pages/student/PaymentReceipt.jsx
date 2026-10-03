@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
+import { formatISTTime, formatISTDateTime } from '../../utils/timeUtils';
 
 const PaymentReceipt = () => {
   const { id } = useParams();
@@ -167,13 +168,13 @@ const PaymentReceipt = () => {
               <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '0.65rem 0', color: '#6b7280' }}>College Reporting Baseline</td>
                 <td style={{ padding: '0.65rem 0', textAlign: 'right', fontFamily: 'monospace', color: '#111827' }}>
-                  {receipt.reporting_time}
+                  {formatISTTime(receipt.reporting_time)}
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '0.65rem 0', color: '#6b7280' }}>Gate Barcode Scanned Time</td>
                 <td style={{ padding: '0.65rem 0', textAlign: 'right', fontFamily: 'monospace', color: '#111827', fontWeight: 600 }}>
-                  {receipt.arrival_time}
+                  {formatISTTime(receipt.arrival_time)}
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
@@ -198,7 +199,7 @@ const PaymentReceipt = () => {
           <div style={{ fontSize: '0.8rem', color: '#166534', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <div>Transaction Ref ID: <strong style={{ fontFamily: 'monospace' }}>{receipt.transaction_id || 'TXN_GATEWAY_SUCCESS'}</strong></div>
             <div>Payment Gateway: <strong>{receipt.payment_gateway || 'RAZORPAY'}</strong></div>
-            <div>Settlement Timestamp: <strong>{receipt.paid_at ? new Date(receipt.paid_at).toLocaleString() : new Date().toLocaleString()}</strong></div>
+            <div>Settlement Timestamp: <strong>{formatISTDateTime(receipt.paid_at || new Date())}</strong></div>
           </div>
         </div>
 

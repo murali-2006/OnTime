@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const config = require('./config');
 const errorHandler = require('./middleware/errorMiddleware');
+const { format12HourTime, getIndiaTodayStr } = require('./utils/indiaTime');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -44,71 +45,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/api/git-execute-push', (req, res) => {
-  try {
-    const { execSync } = require('child_process');
-    const path = require('path');
-    const rootDir = path.resolve(__dirname, '../../');
-
-    // 1. Initial git status
-    const initialStatus = execSync('git status', { cwd: rootDir, encoding: 'utf8' });
-
-    // 2. Verify .gitignore on sensitive files
-    const gitignoreCheck = execSync('git check-ignore -v backend/serviceAccountKey.json backend/.env frontend/.env', { cwd: rootDir, encoding: 'utf8' });
-
-    // 3. Check git remote
-    const remote = execSync('git remote -v', { cwd: rootDir, encoding: 'utf8' });
-
-    // 4. Git add .
-    execSync('git add .', { cwd: rootDir, encoding: 'utf8' });
-
-    // 5. Staged git status
-    const stagedStatus = execSync('git status', { cwd: rootDir, encoding: 'utf8' });
-
-    // Safety verification: confirm no secret files were staged
-    const stagedFiles = execSync('git diff --name-only --cached', { cwd: rootDir, encoding: 'utf8' }).split('\n');
-    const sensitivePatterns = ['.env', 'serviceAccountKey.json', 'node_modules'];
-    const forbiddenFound = stagedFiles.filter(f => sensitivePatterns.some(p => f.includes(p) && !f.endsWith('.example')));
-    if (forbiddenFound.length > 0) {
-      execSync('git reset', { cwd: rootDir, encoding: 'utf8' });
-      return res.status(400).json({ error: 'Sensitive files detected in staging! Aborting.', forbiddenFound });
-    }
-
-    // 6. Git commit
-    const commitMessage = 'Finalize OnTime UI and admin updates';
-    const commitOutput = execSync(`git commit -m "${commitMessage}"`, { cwd: rootDir, encoding: 'utf8' });
-
-    // 7. Git push to existing remote and current branch
-    const pushOutput = execSync('git push origin main', { cwd: rootDir, encoding: 'utf8' });
-
-    // 8. Verification: git log -1 and git status
-    const lastCommit = execSync('git log -1 --stat', { cwd: rootDir, encoding: 'utf8' });
-    const finalStatus = execSync('git status', { cwd: rootDir, encoding: 'utf8' });
-
-    res.json({
-      success: true,
-      initialStatus,
-      gitignoreCheck,
-      remote,
-      stagedStatus,
-      stagedFilesCount: stagedFiles.filter(Boolean).length,
-      commitMessage,
-      commitOutput,
-      pushOutput,
-      lastCommit,
-      finalStatus
-    });
-  } catch (err) {
-    res.status(200).json({
-      success: false,
-      error: err.message,
-      stderr: err.stderr ? err.stderr.toString() : null,
-      stdout: err.stdout ? err.stdout.toString() : null
-    });
-  }
-});
-
-// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/scan', scanRoutes);
@@ -133,7 +69,7 @@ const server = app.listen(config.port, () => {
   console.log('====================================================');
   console.log(`🚀 OnTime Backend running on port ${config.port}`);
   console.log(`🌐 Health check: http://localhost:${config.port}/api/health`);
-  console.log(`📅 Server Time: ${new Date().toLocaleString()}`);
+  console.log(`📅 Server Time (IST): ${getIndiaTodayStr()} ${format12HourTime(new Date())}`);
   console.log('====================================================');
 });
 

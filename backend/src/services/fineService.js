@@ -1,12 +1,19 @@
 const { settingsRepository, fineRulesRepository } = require('../db/repositories/firestoreRepository');
+const {
+  TIMEZONE,
+  getIndiaTimeParts,
+  getIndiaTodayStr,
+  format12HourTime,
+  formatIndiaTimeString
+} = require('../utils/indiaTime');
 
 /**
- * Robustly parses any time representation into minutes from midnight (0 - 1439).
+ * Robustly parses any time representation into minutes from midnight (0 - 1439) in Asia/Kolkata.
  * Handles:
  * - 12-hour format with AM/PM: "9:00 AM", "09:18 AM", "1:15 PM", "3:00 PM", "12:00 PM", "12:30 AM"
  * - 24-hour format: "09:00", "09:18:25", "13:15:00", "15:00:00"
- * - ISO string: "2026-10-02T09:18:00.000Z"
- * - Date object
+ * - ISO string: "2026-10-02T09:18:00.000Z" (evaluated in Asia/Kolkata)
+ * - Date object (evaluated in Asia/Kolkata)
  *
  * @param {string|Date} timeInput
  * @returns {number} minutes from midnight (0 - 1439)
@@ -15,16 +22,18 @@ const parseTimeToMinutes = (timeInput) => {
   if (!timeInput && timeInput !== 0) return 0;
 
   if (timeInput instanceof Date) {
-    return timeInput.getHours() * 60 + timeInput.getMinutes();
+    const { hour, minute } = getIndiaTimeParts(timeInput);
+    return hour * 60 + minute;
   }
 
   const str = String(timeInput).trim();
 
-  // ISO date string handling
-  if (str.includes('T')) {
+  // ISO date string handling - evaluate strictly in Asia/Kolkata
+  if (str.includes('T') || str.endsWith('Z')) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
-      return d.getHours() * 60 + d.getMinutes();
+      const { hour, minute } = getIndiaTimeParts(d);
+      return hour * 60 + minute;
     }
   }
 
@@ -62,16 +71,12 @@ const parseTimeToMinutes = (timeInput) => {
 const timeToMinutes = parseTimeToMinutes;
 
 /**
- * Format Date object to HH:mm:ss in local/server time
- * @param {Date} date
- * @returns {string}
+ * Format Date object to 12-hour AM/PM string in Asia/Kolkata (IST)
+ * @param {Date|string} date
+ * @returns {string} e.g. "10:59 AM"
  */
 const formatTimeString = (date = new Date()) => {
-  const pad = (num) => String(num).padStart(2, '0');
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${hours}:${minutes}:${seconds}`;
+  return format12HourTime(date);
 };
 
 // Retain ONLY these four exact session timings
@@ -205,5 +210,10 @@ module.exports = {
   calculateFine,
   getCollegeSettings,
   SESSION_TIMINGS,
-  getSessionForTime
+  getSessionForTime,
+  format12HourTime,
+  getIndiaTodayStr,
+  getIndiaTimeParts,
+  TIMEZONE
 };
+
