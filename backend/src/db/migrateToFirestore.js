@@ -1,14 +1,10 @@
 const path = require('path');
 const fs = require('fs');
 const { getFirestore, isCloud, getConnectionStatus } = require('./firestore');
-let pg;
-try {
-  pg = require('./index');
-} catch (e) {}
 
 async function migratePostgresToFirestore() {
   console.log('====================================================');
-  console.log('🚀 Starting Data Migration: PostgreSQL -> Google Cloud Firestore...');
+  console.log('🚀 Starting Data Migration / Import -> Google Cloud Firestore...');
   console.log('====================================================\n');
 
   const status = getConnectionStatus();
@@ -21,7 +17,7 @@ async function migratePostgresToFirestore() {
     throw new Error('Cloud Firestore is not active. Refusing to migrate into local fallback.');
   }
 
-  // Load fallback dataset in case live PostgreSQL server is offline
+  // Load verified dataset
   let backupData = {};
   const localDataPath = path.resolve(__dirname, 'firestore_local_data.json');
   if (fs.existsSync(localDataPath)) {
@@ -30,21 +26,10 @@ async function migratePostgresToFirestore() {
     } catch (e) {}
   }
 
-  // Helper to fetch data either from PostgreSQL or verified backup
-  async function fetchTable(tableName, sqlQuery) {
-    if (pg) {
-      try {
-        const res = await pg.query(sqlQuery);
-        if (res && res.rows && res.rows.length > 0) {
-          console.log(`📦 Loaded ${res.rows.length} records from live PostgreSQL table '${tableName}'.`);
-          return res.rows;
-        }
-      } catch (err) {
-        console.warn(`ℹ️ Live PostgreSQL not reachable for '${tableName}' (${err.message}). Using preserved PostgreSQL backup data.`);
-      }
-    }
+  // Helper to fetch data from verified dataset
+  async function fetchTable(tableName) {
     const fromBackup = backupData[tableName] ? Object.values(backupData[tableName]) : [];
-    console.log(`📦 Loaded ${fromBackup.length} records from preserved PostgreSQL backup for '${tableName}'.`);
+    console.log(`📦 Loaded ${fromBackup.length} records for '${tableName}'.`);
     return fromBackup;
   }
 

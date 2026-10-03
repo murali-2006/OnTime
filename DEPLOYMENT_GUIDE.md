@@ -62,10 +62,10 @@ When hosting the Express backend (e.g., on [Render](https://render.com)):
 
 ---
 
-## 5. Safe Local Data Seeding & Migration Commands
+## 5. Safe Local Data Seeding & Verification Commands
 
 From the `backend` directory:
 - To verify all Firestore workflows: `npm run verify`
 - To re-seed initial data to Firestore: `npm run seed`
-- To migrate PostgreSQL data to Firestore: `npm run migrate`
-- To access local PostgreSQL backup: `npm run migrate:pg` and `npm run seed:pg`
+- To import initial dataset into Cloud Firestore: `npm run migrate`
+- To test Cloud Firestore connection: `npm run test:firestore`

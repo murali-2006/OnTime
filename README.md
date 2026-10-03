@@ -11,7 +11,7 @@
 ```mermaid
 graph TD
     A[Student Arrives at College Gate] --> B[Gate Staff Scans ID Card Barcode]
-    B --> C[PostgreSQL Retrieves Student By ID Code]
+    B --> C[Cloud Firestore Retrieves Student By ID Code]
     C --> D[Backend Server Evaluates Server Time vs Reporting Time]
     D --> E{Is Student Late?}
     E -- No (On Time) --> F[Record Arrival with Fine = ₹0]
@@ -41,12 +41,12 @@ graph TD
 - **Backend:**
   - Node.js & Express.js
   - RESTful modular architecture (controllers, routes, services, middleware, validators)
-  - PostgreSQL database with native `pg` connection pool
+  - Google Cloud Firestore / Firebase Admin SDK integration
   - Password hashing with `bcryptjs`
   - Stateless authentication with `jsonwebtoken` (JWT)
   - Payment gateway signature verification with Node.js `crypto` HMAC-SHA256
 - **Database:**
-  - PostgreSQL with primary keys, foreign key constraints, indexes, and triggers
+  - Google Cloud Firestore (collections: users, students, staff, college_settings, fine_rules, late_records, payments)
 
 ---
 
@@ -66,10 +66,13 @@ OnTime/
 │   │   │   ├── scanController.js
 │   │   │   ├── studentController.js
 │   │   │   └── studentPortalController.js
-│   │   ├── db/                 # PostgreSQL pool and migration/seed scripts
-│   │   │   ├── index.js
-│   │   │   ├── migrate.js
-│   │   │   └── seed.js
+│   │   ├── db/                 # Firestore configuration, repositories, and seeders
+│   │   │   ├── firestore.js
+│   │   │   ├── seedFirestore.js
+│   │   │   ├── migrateToFirestore.js
+│   │   │   ├── testFirestoreConnection.js
+│   │   │   └── repositories/
+│   │   │       └── firestoreRepository.js
 │   │   ├── middleware/         # Security & error middlewares
 │   │   │   ├── authMiddleware.js
 │   │   │   ├── errorMiddleware.js
@@ -140,9 +143,6 @@ OnTime/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── database/
-│   ├── schema.sql              # PostgreSQL DDL
-│   └── seed.sql                # Initial data & accounts
 ├── .gitignore
 └── README.md
 ```
@@ -179,27 +179,18 @@ Pre-seeded accounts available for testing:
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher)
-- [PostgreSQL](https://www.postgresql.org/) (v14 or higher)
+- [Firebase Account / Project](https://firebase.google.com/) with Cloud Firestore enabled
 
-### Step 1: Database Setup
-1. Create a PostgreSQL database named `ontime_db`:
+### Step 1: Firebase Firestore Setup
+1. Generate a service account private key from Firebase Console:
+   `Project Settings -> Service accounts -> "Generate new private key"`
+2. Place `serviceAccountKey.json` inside the `backend/` folder (or configure environment variables in `.env`).
+3. Seed initial collections and demo accounts:
    ```bash
-   psql -U postgres
-   CREATE DATABASE ontime_db;
-   \q
-   ```
-2. Run database migration and seed:
-   ```bash
-   # From root directory:
    cd backend
    npm install
-   npm run migrate
    npm run seed
-   ```
-   *Alternatively, load the SQL files directly using psql:*
-   ```bash
-   psql -U postgres -d ontime_db -f ../database/schema.sql
-   psql -U postgres -d ontime_db -f ../database/seed.sql
+   npm run verify
    ```
 
 ### Step 2: Configure Environment Variables
@@ -207,13 +198,14 @@ Pre-seeded accounts available for testing:
   ```env
   PORT=5000
   NODE_ENV=development
-  DATABASE_URL=postgres://postgres:postgres@localhost:5432/ontime_db
   JWT_SECRET=ontime_college_super_secure_jwt_secret_key_2026_dev
   JWT_EXPIRES_IN=7d
   PAYMENT_MODE=test
   PAYMENT_KEY_ID=rzp_test_college_ontime_key_1234
   PAYMENT_KEY_SECRET=rzp_test_secret_college_ontime_9876
   FRONTEND_URL=http://localhost:5173
+  FIREBASE_SERVICE_ACCOUNT_PATH=./serviceAccountKey.json
+  FIREBASE_PROJECT_ID=OnTime
   ```
 
 - In `frontend/.env`:
@@ -255,19 +247,18 @@ The arrival timestamp is obtained strictly from server time upon scanning at the
 - Overlapping active fine rules are strictly blocked at validation time.
 
 ### Duplicate Scan Protection
-- Both the application controller and PostgreSQL enforce duplicate prevention via unique constraints:
-  `CONSTRAINT uq_student_date UNIQUE (student_id, date)`.
-- If a student is scanned twice on the same day, the scanner responds with:
+- The application controller and Firestore repository enforce duplicate prevention:
+  If a student has already been recorded for today's date in `late_records`, the scanner responds with:
   *"Today's arrival has already been recorded for this student."* and prevents duplicate fine records.
 
 ### Mandatory Staff Confirmation
-Per system requirements, scanning an ID does **not** instantly insert a fine record. The staff officer inspects the student details and late calculations first, and must click **Confirm Entry** to commit the record to PostgreSQL.
+Per system requirements, scanning an ID does **not** instantly insert a fine record. The staff officer inspects the student details and late calculations first, and must click **Confirm Entry** to commit the record to Cloud Firestore.
 
 ### Cryptographic Payment Verification
 - The frontend never marks a fine as `PAID`.
 - When a student settles a fine, the backend creates an authenticated order.
 - Upon completion, the backend verifies the cryptographic HMAC SHA-256 signature using `PAYMENT_KEY_SECRET`.
-- Only after successful server signature verification is the payment status set to `SUCCESS` and the late record marked as `PAID` inside an atomic transaction.
+- Only after successful server signature verification is the payment status set to `PAID` and the late record updated in Cloud Firestore.
 
 ---
 

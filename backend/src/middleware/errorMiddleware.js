@@ -9,7 +9,7 @@ const errorHandler = (err, req, res, next) => {
     code: err.code
   });
 
-  // Handle unique constraint violations from Postgres
+  // Handle unique constraint or duplicate record violations
   if (err.code === '23505') {
     let customMsg = 'A record with this identifier already exists.';
     if (err.constraint === 'uq_student_date') {

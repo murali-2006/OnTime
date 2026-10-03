@@ -214,7 +214,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--border-subtle)', padding: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-        © 2026 OnTime College Late-Arrival & Fine Management System. Built with React, Node.js & PostgreSQL.
+        © 2026 OnTime College Late-Arrival & Fine Management System. Built with React, Node.js & Cloud Firestore.
       </footer>
     </div>
   );
