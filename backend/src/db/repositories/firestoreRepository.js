@@ -787,7 +787,11 @@ const paymentRepository = {
       payments = payments.filter(
         (p) =>
           (p.student_name && p.student_name.toLowerCase().includes(q)) ||
+          (p.studentName && p.studentName.toLowerCase().includes(q)) ||
           (p.student_code && p.student_code.toLowerCase().includes(q)) ||
+          (p.studentCode && p.studentCode.toLowerCase().includes(q)) ||
+          (p.register_number && p.register_number.toLowerCase().includes(q)) ||
+          (p.registerNumber && p.registerNumber.toLowerCase().includes(q)) ||
           (p.transaction_id && p.transaction_id.toLowerCase().includes(q))
       );
     }

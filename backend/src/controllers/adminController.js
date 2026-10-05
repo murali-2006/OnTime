@@ -153,7 +153,8 @@ const toggleFineRuleStatus = async (req, res, next) => {
 };
 
 /**
- * Get all payment records (Payment Logs displays ONLY SUCCESS and FAILED payments)
+ * Get all payment records for Admin Payment Logs audit
+ * Supports status filters: All (default), PENDING, PAID, REJECTED
  * Route: GET /api/admin/payments
  */
 const getAllPayments = async (req, res, next) => {
@@ -161,15 +162,20 @@ const getAllPayments = async (req, res, next) => {
     const { status, search } = req.query;
     let payments = await paymentRepository.findAll({ search });
 
-    // Payment Logs audit displays ONLY SUCCESS and FAILED records (excludes internal CREATED)
-    if (status === 'SUCCESS') {
-      payments = payments.filter((p) => p.status === 'SUCCESS');
-    } else if (status === 'FAILED') {
-      payments = payments.filter((p) => p.status === 'FAILED');
-    } else {
-      // "All Payment Statuses" -> show both SUCCESS and FAILED records
-      payments = payments.filter((p) => p.status === 'SUCCESS' || p.status === 'FAILED');
+    // Apply status filter if explicitly specified
+    if (status && status.trim() !== '') {
+      const targetStatus = status.trim().toUpperCase();
+      if (targetStatus === 'PAID') {
+        payments = payments.filter((p) => p.status === 'PAID' || p.status === 'SUCCESS');
+      } else if (targetStatus === 'REJECTED') {
+        payments = payments.filter((p) => p.status === 'REJECTED' || p.status === 'FAILED');
+      } else if (targetStatus === 'PENDING') {
+        payments = payments.filter((p) => p.status === 'PENDING');
+      } else {
+        payments = payments.filter((p) => p.status === targetStatus);
+      }
     }
+    // When no status is specified ("All Payment Statuses"), return all stored payment records!
 
     res.json({
       success: true,
@@ -180,6 +186,7 @@ const getAllPayments = async (req, res, next) => {
     next(error);
   }
 };
+
 
 /**
  * Safe Demo Reset: Clears today's demo late records and payment test transactions.
