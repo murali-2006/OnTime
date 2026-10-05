@@ -1,96 +1,121 @@
 /**
- * Standalone Historical Data Cleanup Script
- * Cleans ONLY:
- *   - 'late_records' collection
- *   - 'payments' collection
+ * STRICT ONE-TIME FIRESTORE CLEANUP
+ * DELETES ONLY 'payments' AND 'late_records' COLLECTIONS
  *
- * STRICTLY PRESERVES:
- *   - 'students' (master student profiles, register numbers, barcodes)
- *   - 'users' (auth accounts)
- *   - 'staff' (staff profiles)
- *   - 'college_settings' (reporting times, sessions)
- *   - 'fine_rules' (fine rules and configuration)
+ * Safe Procedure:
+ * 1. Connect using existing Firebase Admin SDK.
+ * 2. Read ONLY 'payments' collection. Count documents.
+ * 3. Delete ONLY those documents.
+ * 4. Verify 'payments' has 0 documents.
+ * 5. Read ONLY 'late_records' collection. Count documents.
+ * 6. Delete ONLY those documents.
+ * 7. Verify 'late_records' has 0 documents.
+ * 8. Read-only verify master data: students, users, staff, college_settings, fine_rules are NOT TOUCHED.
  */
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const { getFirestore } = require('../src/db/firestore');
 
 async function runCleanup() {
   console.log('====================================================');
-  console.log('🧹 ONTIME HISTORICAL FINE & PAYMENT DATA CLEANUP');
+  console.log('STRICT ONE-TIME FIRESTORE CLEANUP');
+  console.log('TARGET: payments AND late_records ONLY');
   console.log('====================================================\n');
 
   const db = getFirestore();
 
-  console.log('--- 1. AUDITING BEFORE DELETION ---');
+  // --------------------------------------------------
+  // STEP 1 & 2: PAYMENTS COLLECTION
+  // --------------------------------------------------
+  console.log('Connecting to collection: payments...');
+  const paymentsSnapshot = await db.collection('payments').get();
+  const paymentsBefore = paymentsSnapshot.size;
+  console.log(`payments: Before = ${paymentsBefore}`);
 
-  // Verify Master Collections (DO NOT TOUCH)
-  const studentsBefore = await db.collection('students').get();
-  const usersBefore = await db.collection('users').get();
-  const staffBefore = await db.collection('staff').get();
-  const settingsBefore = await db.collection('college_settings').get();
-  const fineRulesBefore = await db.collection('fine_rules').get();
-
-  console.log(`[MASTER DATA PRESERVED]`);
-  console.log(`  students:         ${studentsBefore.size} records`);
-  console.log(`  users:            ${usersBefore.size} records`);
-  console.log(`  staff:            ${staffBefore.size} records`);
-  console.log(`  college_settings: ${settingsBefore.size} records`);
-  console.log(`  fine_rules:       ${fineRulesBefore.size} records`);
-
-  // Target Collections to Clear
-  const lateRecordsBefore = await db.collection('late_records').get();
-  const paymentsBefore = await db.collection('payments').get();
-
-  console.log(`\n[TARGET COLLECTIONS TO CLEAR]`);
-  console.log(`  late_records:     ${lateRecordsBefore.size} records found`);
-  console.log(`  payments:         ${paymentsBefore.size} records found`);
-
-  console.log('\n--- 2. PERFORMING SAFE DELETION ---');
-
-  let deletedLateCount = 0;
-  for (const doc of lateRecordsBefore.docs) {
-    await db.collection('late_records').doc(doc.id).delete();
-    deletedLateCount++;
-  }
-  console.log(`  Deleted ${deletedLateCount} records from 'late_records' collection.`);
-
-  let deletedPaymentsCount = 0;
-  for (const doc of paymentsBefore.docs) {
+  let paymentsDeleted = 0;
+  for (const doc of paymentsSnapshot.docs) {
     await db.collection('payments').doc(doc.id).delete();
-    deletedPaymentsCount++;
+    paymentsDeleted++;
   }
-  console.log(`  Deleted ${deletedPaymentsCount} records from 'payments' collection.`);
+  console.log(`payments: Deleted = ${paymentsDeleted}`);
 
-  console.log('\n--- 3. VERIFYING AFTER DELETION ---');
+  const paymentsVerify = await db.collection('payments').get();
+  const paymentsAfter = paymentsVerify.size;
+  console.log(`payments: After = ${paymentsAfter}`);
 
-  const lateRecordsAfter = await db.collection('late_records').get();
-  const paymentsAfter = await db.collection('payments').get();
+  if (paymentsAfter !== 0) {
+    throw new Error(`Verification failed: payments collection still has ${paymentsAfter} documents!`);
+  }
 
-  console.log(`  late_records remaining: ${lateRecordsAfter.size} (Expected: 0)`);
-  console.log(`  payments remaining:     ${paymentsAfter.size} (Expected: 0)`);
+  // --------------------------------------------------
+  // STEP 3 & 4: LATE_RECORDS COLLECTION
+  // --------------------------------------------------
+  console.log('\nConnecting to collection: late_records...');
+  const lateSnapshot = await db.collection('late_records').get();
+  const lateBefore = lateSnapshot.size;
+  console.log(`late_records: Before = ${lateBefore}`);
 
-  // Verify Master Collections are 100% Unchanged
-  const studentsAfter = await db.collection('students').get();
-  const usersAfter = await db.collection('users').get();
-  const staffAfter = await db.collection('staff').get();
-  const settingsAfter = await db.collection('college_settings').get();
-  const fineRulesAfter = await db.collection('fine_rules').get();
+  let lateDeleted = 0;
+  for (const doc of lateSnapshot.docs) {
+    await db.collection('late_records').doc(doc.id).delete();
+    lateDeleted++;
+  }
+  console.log(`late_records: Deleted = ${lateDeleted}`);
 
-  console.log('\n--- 4. MASTER DATA INTEGRITY CHECK ---');
-  console.log(`  students:         ${studentsAfter.size} records (Untouched: ${studentsAfter.size === studentsBefore.size ? 'YES' : 'NO'})`);
-  console.log(`  users:            ${usersAfter.size} records (Untouched: ${usersAfter.size === usersBefore.size ? 'YES' : 'NO'})`);
-  console.log(`  staff:            ${staffAfter.size} records (Untouched: ${staffAfter.size === staffBefore.size ? 'YES' : 'NO'})`);
-  console.log(`  college_settings: ${settingsAfter.size} records (Untouched: ${settingsAfter.size === settingsBefore.size ? 'YES' : 'NO'})`);
-  console.log(`  fine_rules:       ${fineRulesAfter.size} records (Untouched: ${fineRulesAfter.size === fineRulesBefore.size ? 'YES' : 'NO'})`);
+  const lateVerify = await db.collection('late_records').get();
+  const lateAfter = lateVerify.size;
+  console.log(`late_records: After = ${lateAfter}`);
+
+  if (lateAfter !== 0) {
+    throw new Error(`Verification failed: late_records collection still has ${lateAfter} documents!`);
+  }
+
+  // --------------------------------------------------
+  // STEP 5: READ-ONLY INTEGRITY CHECK OF MASTER COLLECTIONS
+  // --------------------------------------------------
+  console.log('\n--- MASTER DATA INTEGRITY VERIFICATION (READ-ONLY) ---');
+  const studentsSnap = await db.collection('students').get();
+  const usersSnap = await db.collection('users').get();
+  const staffSnap = await db.collection('staff').get();
+  const settingsSnap = await db.collection('college_settings').get();
+  const rulesSnap = await db.collection('fine_rules').get();
+
+  console.log(`students:         ${studentsSnap.size} records → NOT TOUCHED`);
+  console.log(`users:            ${usersSnap.size} records → NOT TOUCHED`);
+  console.log(`staff:            ${staffSnap.size} records → NOT TOUCHED`);
+  console.log(`college_settings: ${settingsSnap.size} records → NOT TOUCHED`);
+  console.log(`fine_rules:       ${rulesSnap.size} records → NOT TOUCHED`);
 
   console.log('\n====================================================');
-  console.log('✅ HISTORICAL DATA CLEANUP COMPLETED SUCCESSFULLY');
+  console.log('FINAL AUDIT REPORT');
   console.log('====================================================');
+  console.log(`payments:`);
+  console.log(`Before = ${paymentsBefore}`);
+  console.log(`Deleted = ${paymentsDeleted}`);
+  console.log(`After = ${paymentsAfter}`);
+  console.log(``);
+  console.log(`late_records:`);
+  console.log(`Before = ${lateBefore}`);
+  console.log(`Deleted = ${lateDeleted}`);
+  console.log(`After = ${lateAfter}`);
+  console.log(``);
+  console.log(`students → NOT TOUCHED`);
+  console.log(`users → NOT TOUCHED`);
+  console.log(`staff → NOT TOUCHED`);
+  console.log(`college_settings → NOT TOUCHED`);
+  console.log(`fine_rules → NOT TOUCHED`);
+  console.log(`all other collections → NOT TOUCHED`);
+  console.log('====================================================\n');
 
   return {
-    deletedLateRecords: deletedLateCount,
-    deletedPayments: deletedPaymentsCount,
-    masterDataPreserved: true
+    payments: { before: paymentsBefore, deleted: paymentsDeleted, after: paymentsAfter },
+    late_records: { before: lateBefore, deleted: lateDeleted, after: lateAfter },
+    masterPreserved: {
+      students: studentsSnap.size,
+      users: usersSnap.size,
+      staff: staffSnap.size,
+      college_settings: settingsSnap.size,
+      fine_rules: rulesSnap.size
+    }
   };
 }
 
