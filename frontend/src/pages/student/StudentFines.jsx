@@ -354,7 +354,7 @@ const StudentFines = () => {
                       ₹{parseFloat(paid.fine_amount).toFixed(2)}
                     </td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {paid.payment_id || paid.transaction_id || 'VERIFIED'}
+                      {paid.transaction_id || (paid.payment_id ? `DEMO-TXN-${paid.payment_id}` : 'N/A')}
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {paid.paid_at ? formatISTDateTime(paid.paid_at) : 'Paid'}
@@ -559,7 +559,7 @@ const StudentFines = () => {
               marginBottom: '0.5rem',
               letterSpacing: '0.03em'
             }}>
-              <QrCode size={13} /> Scan QR (Demo)
+              <QrCode size={13} /> Scan QR Code
             </div>
 
             <div
@@ -583,7 +583,7 @@ const StudentFines = () => {
               Scan QR to complete payment
             </p>
             <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-              Demonstration QR Code • Scan for demonstration, then tap "I Have Paid" below
+              Scan the QR code to complete payment, then tap "Paid" below
             </p>
           </div>
 
@@ -603,7 +603,7 @@ const StudentFines = () => {
           }}>
             <ShieldCheck size={18} color="var(--primary-500)" style={{ flexShrink: 0 }} />
             <span>
-              Tapping "I Have Paid" creates a verification request for staff. Official receipt unlocks after staff verification.
+              Tapping "Paid" creates a verification request for staff. Official receipt unlocks after staff verification.
             </span>
           </div>
 
@@ -636,7 +636,7 @@ const StudentFines = () => {
                 style={{ minWidth: '150px' }}
               >
                 <Check size={15} />
-                {submittingPayment ? 'Submitting...' : 'I Have Paid'}
+                {submittingPayment ? 'Submitting...' : 'Paid'}
               </button>
             )}
           </div>

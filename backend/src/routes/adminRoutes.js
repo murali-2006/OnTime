@@ -27,4 +27,8 @@ router.get('/payments', adminController.getAllPayments);
 // Safe Demo Reset (clears today's demo late records and payment test transactions)
 router.post('/demo-reset', adminController.resetDemoData);
 
+// Safe Historical Data Cleanup (clears ALL late_records and payments, preserves students and configuration)
+router.post('/clear-history', adminController.clearAllHistoryData);
+
 module.exports = router;
+

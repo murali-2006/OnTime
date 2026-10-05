@@ -135,9 +135,14 @@ const getStudentFines = async (req, res, next) => {
             (p.status === 'PAID' || p.status === 'SUCCESS')
         );
 
+        const recDateStr = (fine.date ? (fine.date.includes('T') ? fine.date.split('T')[0] : fine.date) : '20261005').replace(/-/g, '');
+        const fallbackTxnId = `DEMO-TXN-${recDateStr}-${String(fine.id).padStart(4, '0')}`;
+        const txnId = paidPayment?.transaction_id || fine.transaction_id || fallbackTxnId;
+
         return {
           ...fine,
           payment_id: paidPayment ? paidPayment.id : fine.id,
+          transaction_id: txnId,
           paid_at: paidPayment ? (paidPayment.paid_at || paidPayment.verifiedAt) : fine.updated_at,
           verifiedBy: paidPayment ? paidPayment.verifiedBy : null
         };

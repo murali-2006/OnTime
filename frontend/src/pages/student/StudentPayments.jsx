@@ -108,7 +108,7 @@ const StudentPayments = () => {
                       ₹{parseFloat(p.fine_amount).toFixed(2)}
                     </td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.825rem', color: 'var(--primary-400)' }}>
-                      {p.transaction_id || 'SUCCESS'}
+                      {p.transaction_id || (p.payment_id ? `DEMO-TXN-${p.payment_id}` : 'N/A')}
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {p.paid_at ? formatISTDateTime(p.paid_at) : 'Completed'}
@@ -160,7 +160,7 @@ const StudentPayments = () => {
                       {p.late_minutes} min late • {p.paid_at ? formatISTDateTime(p.paid_at) : 'Completed'}
                     </div>
                     <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--primary-400)', marginTop: '0.15rem' }}>
-                      Txn: {p.transaction_id || 'SUCCESS'}
+                      Txn: {p.transaction_id || (p.payment_id ? `DEMO-TXN-${p.payment_id}` : 'N/A')}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>

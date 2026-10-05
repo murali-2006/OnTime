@@ -188,15 +188,40 @@ const getAllPayments = async (req, res, next) => {
  */
 const resetDemoData = async (req, res, next) => {
   try {
-    const { studentId, date } = req.body || {};
+    const { studentId, date, clearAll } = req.body || {};
     const result = await lateRecordRepository.resetTodayDemoRecords({
       studentId: studentId ? Number(studentId) : null,
-      dateStr: date || null
+      dateStr: date || null,
+      clearAll: Boolean(clearAll)
     });
 
     res.json({
       success: true,
-      message: `Demo reset complete. Safely cleared ${result.deletedLateRecordsCount} record(s) and ${result.deletedPaymentsCount} payment transaction(s) for ${result.targetDate}. Students can now be scanned again for demonstration.`,
+      message: clearAll
+        ? `Historical data cleanup complete. Safely cleared ${result.deletedLateRecordsCount} late record(s) and ${result.deletedPaymentsCount} payment transaction(s). Master data (students, barcodes, rules, users) preserved.`
+        : `Demo reset complete. Safely cleared ${result.deletedLateRecordsCount} record(s) and ${result.deletedPaymentsCount} payment transaction(s) for ${result.targetDate}. Students can now be scanned again for demonstration.`,
+      result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Safe Historical Data Cleanup:
+ * Clears ALL historical fine/late records (late_records) and payment transactions (payments).
+ * Strictly preserves: students, student IDs, barcodes, users, staff, fine rules, college settings.
+ * Route: POST /api/admin/clear-history
+ */
+const clearAllHistoryData = async (req, res, next) => {
+  try {
+    const result = await lateRecordRepository.resetTodayDemoRecords({
+      clearAll: true
+    });
+
+    res.json({
+      success: true,
+      message: `Historical fine and payment records cleared successfully (${result.deletedLateRecordsCount} late records, ${result.deletedPaymentsCount} payments). Student master records, staff, and configuration remain 100% intact.`,
       result
     });
   } catch (error) {
@@ -213,5 +238,7 @@ module.exports = {
   updateFineRule,
   toggleFineRuleStatus,
   getAllPayments,
-  resetDemoData
+  resetDemoData,
+  clearAllHistoryData
 };
+

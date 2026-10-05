@@ -31,6 +31,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { label: 'Dashboard', path: '/staff/dashboard', icon: LayoutDashboard },
     { label: 'ID Barcode Scanner', path: '/staff/scan', icon: ScanLine },
     { label: 'Late Records Log', path: '/staff/late-records', icon: ClipboardList },
+    { label: 'Payment Requests', path: '/staff/payment-requests', icon: CreditCard },
   ];
 
   const studentNav = [

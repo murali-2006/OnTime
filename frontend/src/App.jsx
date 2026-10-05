@@ -20,6 +20,7 @@ import SettingsPage from './pages/admin/SettingsPage';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import ScanPage from './pages/staff/ScanPage';
 import StaffLateRecords from './pages/staff/StaffLateRecords';
+import StaffPaymentRequests from './pages/staff/StaffPaymentRequests';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -72,6 +73,7 @@ function App() {
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/scan" element={<ScanPage />} />
           <Route path="/staff/late-records" element={<StaffLateRecords />} />
+          <Route path="/staff/payment-requests" element={<StaffPaymentRequests />} />
         </Route>
       </Route>
 

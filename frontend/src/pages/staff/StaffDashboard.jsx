@@ -5,34 +5,16 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  RefreshCw,
-  CreditCard,
-  Check,
-  X
+  RefreshCw
 } from 'lucide-react';
 import api from '../../services/api';
 import StatCard from '../../components/StatCard';
 import Badge from '../../components/Badge';
-import Modal from '../../components/Modal';
-import Toast from '../../components/Toast';
 import { formatISTTime, formatISTDateTime, getIndiaTodayStr } from '../../utils/timeUtils';
 
 const StaffDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Payment Requests State
-  const [paymentRequests, setPaymentRequests] = useState([]);
-  const [loadingRequests, setLoadingRequests] = useState(true);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
-
-  // Reject Modal State
-  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
-  const [selectedRequestForReject, setSelectedRequestForReject] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-
-  // Toast State
-  const [toastMessage, setToastMessage] = useState(null);
 
   const fetchStaffData = async () => {
     setLoading(true);
@@ -60,96 +42,18 @@ const StaffDashboard = () => {
     }
   };
 
-  const fetchPaymentRequests = async () => {
-    setLoadingRequests(true);
-    try {
-      const res = await api.get('/payments/requests');
-      if (res.success) {
-        setPaymentRequests(res.requests || []);
-      }
-    } catch (err) {
-      console.error('Failed to load payment requests:', err);
-    } finally {
-      setLoadingRequests(false);
-    }
-  };
-
   useEffect(() => {
     fetchStaffData();
-    fetchPaymentRequests();
   }, []);
-
-  const handleRefreshAll = () => {
-    fetchStaffData();
-    fetchPaymentRequests();
-  };
-
-  // Staff Action: VERIFY & ACCEPT
-  const handleVerifyAndAccept = async (request) => {
-    const requestId = request.paymentId || request.id;
-    setActionLoadingId(requestId);
-    try {
-      const res = await api.post(`/payments/${requestId}/verify`);
-      if (res.success) {
-        setToastMessage({ message: 'Payment verified & accepted successfully!', type: 'success' });
-        await Promise.all([fetchPaymentRequests(), fetchStaffData()]);
-      }
-    } catch (err) {
-      setToastMessage({ message: err.message || 'Failed to verify payment request.', type: 'error' });
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  // Staff Action: Open REJECT modal
-  const handleOpenRejectModal = (request) => {
-    setSelectedRequestForReject(request);
-    setRejectionReason('');
-    setRejectionModalOpen(true);
-  };
-
-  // Staff Action: Confirm REJECT
-  const handleConfirmReject = async () => {
-    if (!selectedRequestForReject) return;
-    const requestId = selectedRequestForReject.paymentId || selectedRequestForReject.id;
-    setActionLoadingId(requestId);
-    try {
-      const res = await api.post(`/payments/${requestId}/reject`, {
-        reason: rejectionReason.trim() || undefined
-      });
-      if (res.success) {
-        setToastMessage({ message: 'Payment request rejected.', type: 'info' });
-        setRejectionModalOpen(false);
-        setSelectedRequestForReject(null);
-        await Promise.all([fetchPaymentRequests(), fetchStaffData()]);
-      }
-    } catch (err) {
-      setToastMessage({ message: err.message || 'Failed to reject payment request.', type: 'error' });
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const pendingRequestsCount = paymentRequests.filter((r) => r.status === 'PENDING').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {toastMessage && (
-        <div className="toast-container">
-          <Toast
-            message={toastMessage.message}
-            type={toastMessage.type}
-            onClose={() => setToastMessage(null)}
-          />
-        </div>
-      )}
-
       {/* Header & Primary Gate Action */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Staff Dashboard</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Record student arrival times by scanning student ID card barcodes and verify student fine payments
+            Record student arrival times by scanning student ID card barcodes and monitor gate entry activity
           </p>
         </div>
         <Link to="/staff/scan" className="btn btn-primary btn-lg" style={{ boxShadow: '0 0 20px rgba(37,99,235,0.4)' }}>
@@ -182,236 +86,6 @@ const StaffDashboard = () => {
         />
       </div>
 
-      {/* Payment Requests Section */}
-      <div className="card">
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div>
-            <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CreditCard size={20} color="#2563eb" /> Payment Verification Requests
-            </h2>
-            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              Review student-submitted payment requests and verify to clear fines and unlock official receipts
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span className="badge badge-pending">
-              {pendingRequestsCount} Pending
-            </span>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={fetchPaymentRequests}>
-              <RefreshCw size={14} /> Refresh
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop Table View */}
-        <div className="table-container desktop-only-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Student Name</th>
-                <th>Student ID / Code</th>
-                <th>Fine Amount</th>
-                <th>Submitted Time</th>
-                <th>Payment Status</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loadingRequests ? (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
-                    Loading payment requests...
-                  </td>
-                </tr>
-              ) : paymentRequests.length > 0 ? (
-                paymentRequests.map((req) => {
-                  const reqId = req.paymentId || req.id;
-                  const isPending = req.status === 'PENDING';
-                  const isActionLoading = actionLoadingId === reqId;
-
-                  return (
-                    <tr key={reqId}>
-                      <td style={{ fontWeight: 600 }}>{req.studentName || 'Student'}</td>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-400)' }}>
-                        {req.studentCode || req.studentId || 'N/A'}
-                      </td>
-                      <td style={{ fontWeight: 800, fontSize: '1rem', color: '#ef4444' }}>
-                        ₹{parseFloat(req.fineAmount || 0).toFixed(2)}
-                      </td>
-                      <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        {req.submittedAt ? formatISTDateTime(req.submittedAt) : 'N/A'}
-                      </td>
-                      <td>
-                        <Badge status={req.status} />
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        {isPending ? (
-                          <div style={{ display: 'inline-flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                            <button
-                              type="button"
-                              className="btn btn-primary btn-sm"
-                              style={{
-                                background: '#10b981',
-                                borderColor: '#10b981',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.35rem'
-                              }}
-                              onClick={() => handleVerifyAndAccept(req)}
-                              disabled={isActionLoading}
-                            >
-                              <Check size={14} />
-                              {isActionLoading ? 'Verifying...' : 'VERIFY & ACCEPT'}
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-secondary btn-sm"
-                              style={{
-                                color: '#ef4444',
-                                borderColor: 'rgba(239, 68, 68, 0.4)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.35rem'
-                              }}
-                              onClick={() => handleOpenRejectModal(req)}
-                              disabled={isActionLoading}
-                            >
-                              <X size={14} />
-                              REJECT
-                            </button>
-                          </div>
-                        ) : req.status === 'PAID' ? (
-                          <div style={{ fontSize: '0.8rem', color: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <CheckCircle2 size={14} />
-                            <span>Verified by {req.verifiedBy || 'Staff'}</span>
-                          </div>
-                        ) : (
-                          <div style={{ fontSize: '0.8rem', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <X size={14} />
-                            <span>Rejected {req.rejectionReason ? `(${req.rejectionReason})` : ''}</span>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                      <CheckCircle2 size={32} color="#10b981" />
-                      <span style={{ fontWeight: 600, color: '#fff' }}>No Pending Payment Requests</span>
-                      <span style={{ fontSize: '0.85rem' }}>All student fine payments are up to date!</span>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards View */}
-        <div className="mobile-cards-container">
-          {loadingRequests ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-              Loading payment requests...
-            </div>
-          ) : paymentRequests.length > 0 ? (
-            paymentRequests.map((req) => {
-              const reqId = req.paymentId || req.id;
-              const isPending = req.status === 'PENDING';
-              const isActionLoading = actionLoadingId === reqId;
-
-              return (
-                <div key={reqId} className="mobile-item-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                        {req.studentName || 'Student'}
-                      </div>
-                      <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--primary-400)', marginTop: '0.15rem' }}>
-                        ID: {req.studentCode || req.studentId || 'N/A'}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                        {req.submittedAt ? formatISTDateTime(req.submittedAt) : ''}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#ef4444' }}>
-                        ₹{parseFloat(req.fineAmount || 0).toFixed(2)}
-                      </div>
-                      <div style={{ marginTop: '0.35rem' }}>
-                        <Badge status={req.status} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
-                    {isPending ? (
-                      <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-sm"
-                          style={{
-                            background: '#10b981',
-                            borderColor: '#10b981',
-                            flex: 1,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.35rem',
-                            padding: '0.65rem 0.5rem'
-                          }}
-                          onClick={() => handleVerifyAndAccept(req)}
-                          disabled={isActionLoading}
-                        >
-                          <Check size={14} />
-                          {isActionLoading ? 'Verifying...' : 'VERIFY & ACCEPT'}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            color: '#ef4444',
-                            borderColor: 'rgba(239, 68, 68, 0.4)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.35rem',
-                            padding: '0.65rem 0.85rem'
-                          }}
-                          onClick={() => handleOpenRejectModal(req)}
-                          disabled={isActionLoading}
-                        >
-                          <X size={14} />
-                          REJECT
-                        </button>
-                      </div>
-                    ) : req.status === 'PAID' ? (
-                      <div style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <CheckCircle2 size={15} />
-                        <span>Verified by {req.verifiedBy || 'Staff'}</span>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '0.8rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <X size={15} />
-                        <span>Rejected {req.rejectionReason ? `(${req.rejectionReason})` : ''}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>
-              <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 0.5rem auto' }} />
-              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>No Pending Requests</div>
-              <div style={{ fontSize: '0.8rem' }}>All student fine payments are up to date!</div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Recent Scans Table */}
       <div className="card">
         <div className="card-header">
@@ -421,7 +95,7 @@ const StaffDashboard = () => {
               Real-time feed of gate entries recorded today
             </p>
           </div>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={handleRefreshAll}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={fetchStaffData}>
             <RefreshCw size={14} /> Refresh
           </button>
         </div>
@@ -431,51 +105,57 @@ const StaffDashboard = () => {
             <thead>
               <tr>
                 <th>Student Code</th>
-                <th>Student Name</th>
-                <th>Register No.</th>
-                <th>Department</th>
-                <th>Arrival Time</th>
-                <th>Late Duration</th>
-                <th>Fine (₹)</th>
+                <th>Name</th>
+                <th>Dept / Year</th>
+                <th>Scanned Time</th>
+                <th>Late Minutes</th>
+                <th>Fine (INR)</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
-                    Loading today's records...
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                    Loading scans...
                   </td>
                 </tr>
               ) : data?.recentScans && data.recentScans.length > 0 ? (
-                data.recentScans.map((rec) => (
-                  <tr key={rec.id}>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-400)' }}>
-                      {rec.student_code}
+                data.recentScans.map((record) => (
+                  <tr key={record.id}>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                      {record.student_code}
                     </td>
-                    <td style={{ fontWeight: 600 }}>{rec.student_name}</td>
-                    <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                      {rec.register_number}
-                    </td>
-                    <td>{rec.department}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(rec.arrival_time)}</td>
-                    <td>
-                      <span style={{ color: rec.late_minutes > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>
-                        {rec.late_minutes > 0 ? `${rec.late_minutes} min late` : 'On Time'}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 700, color: '#fff' }}>
-                      ₹{parseFloat(rec.fine_amount).toFixed(2)}
+                    <td style={{ fontWeight: 600 }}>{record.student_name}</td>
+                    <td>{record.department} ({record.year || 'N/A'})</td>
+                    <td style={{ fontFamily: 'monospace' }}>
+                      {formatISTTime(record.arrival_time)}
                     </td>
                     <td>
-                      <Badge status={rec.status} />
+                      {record.late_minutes > 0 ? (
+                        <span style={{ color: '#f59e0b', fontWeight: 600 }}>
+                          {record.late_minutes} min late
+                        </span>
+                      ) : (
+                        <span style={{ color: '#10b981' }}>On-Time</span>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: 700 }}>
+                      {parseFloat(record.fine_amount) > 0 ? `₹${parseFloat(record.fine_amount).toFixed(2)}` : '₹0.00'}
+                    </td>
+                    <td>
+                      <Badge status={record.status} />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
-                    No students have been scanned yet today.
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                      <CheckCircle2 size={32} color="var(--primary-400)" />
+                      <span style={{ fontWeight: 600, color: '#fff' }}>No Scans Recorded Today</span>
+                      <span style={{ fontSize: '0.85rem' }}>Gate scans will appear here live when students present their barcodes.</span>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -483,73 +163,6 @@ const StaffDashboard = () => {
           </table>
         </div>
       </div>
-
-      {/* Reject Payment Request Modal */}
-      <Modal
-        isOpen={rejectionModalOpen}
-        onClose={() => !actionLoadingId && setRejectionModalOpen(false)}
-        title="Reject Payment Request"
-        maxWidth="480px"
-      >
-        <div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-            Are you sure you want to reject this payment request? The student will be notified that the request was rejected and can submit a new payment request.
-          </p>
-
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid var(--border-subtle)',
-            padding: '1rem',
-            borderRadius: '8px',
-            marginBottom: '1.25rem',
-            fontSize: '0.85rem'
-          }}>
-            <div style={{ marginBottom: '0.35rem' }}>
-              Student: <strong style={{ color: 'var(--text-main)' }}>{selectedRequestForReject?.studentName}</strong> ({selectedRequestForReject?.studentCode})
-            </div>
-            <div style={{ marginBottom: '0.35rem' }}>
-              Fine Amount: <strong style={{ color: '#ef4444' }}>₹{parseFloat(selectedRequestForReject?.fineAmount || 0).toFixed(2)}</strong>
-            </div>
-            <div>
-              Payment ID: <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{selectedRequestForReject?.paymentId || selectedRequestForReject?.id}</span>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-              Reason for Rejection (Optional)
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. Unrecognized transaction, incorrect amount, etc."
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          <div className="modal-actions" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setRejectionModalOpen(false)}
-              disabled={actionLoadingId !== null}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ background: '#ef4444', borderColor: '#ef4444' }}
-              onClick={handleConfirmReject}
-              disabled={actionLoadingId !== null}
-            >
-              {actionLoadingId ? 'Rejecting...' : 'Reject Request'}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

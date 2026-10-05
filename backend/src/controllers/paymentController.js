@@ -74,6 +74,9 @@ const submitPaymentRequest = async (req, res, next) => {
 
     const now = new Date().toISOString();
     const fineAmount = parseFloat(record.fine_amount).toFixed(2);
+    const datePart = now.slice(0, 10).replace(/-/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const txnId = `DEMO-TXN-${datePart}-${randomSuffix}`;
 
     // SECURITY: Status is STRICTLY set to 'PENDING'. Student cannot directly set 'PAID'.
     const payment = await paymentRepository.create({
@@ -88,7 +91,7 @@ const submitPaymentRequest = async (req, res, next) => {
       payment_gateway: 'DEMO_QR',
       status: 'PENDING',
       submittedAt: now,
-      transaction_id: `DEMO_${Date.now()}`
+      transaction_id: txnId
     });
 
     res.json({
@@ -98,6 +101,8 @@ const submitPaymentRequest = async (req, res, next) => {
       payment: {
         id: payment.id,
         paymentId: payment.id,
+        transactionId: txnId,
+        transaction_id: txnId,
         studentId: payment.student_id,
         studentName: payment.student_name,
         studentCode: payment.student_code,

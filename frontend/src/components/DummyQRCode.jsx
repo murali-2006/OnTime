@@ -160,7 +160,7 @@ const DummyQRCode = ({ size = 140, className = '' }) => {
           letterSpacing="0.05em"
           fill="#2563eb"
         >
-          DEMO
+          UPI
         </text>
       </g>
     </svg>

@@ -554,7 +554,7 @@ const lateRecordRepository = {
     }
   },
 
-  async resetTodayDemoRecords({ studentId = null, dateStr = null } = {}) {
+  async resetTodayDemoRecords({ studentId = null, dateStr = null, clearAll = false } = {}) {
     const targetDate = dateStr || getIndiaTodayStr();
     const snapshot = await db().collection('late_records').get();
     const deletedLateRecordIds = [];
@@ -562,8 +562,8 @@ const lateRecordRepository = {
     for (const doc of snapshot.docs) {
       const d = docToData(doc);
       const recDate = d.date ? (d.date.includes('T') ? d.date.split('T')[0] : d.date) : '';
-      const matchesDate = recDate === targetDate;
-      const matchesStudent = !studentId || Number(d.student_id) === Number(studentId);
+      const matchesDate = clearAll || recDate === targetDate;
+      const matchesStudent = clearAll || !studentId || Number(d.student_id) === Number(studentId);
 
       if (matchesDate && matchesStudent) {
         deletedLateRecordIds.push(d.id);
@@ -571,24 +571,31 @@ const lateRecordRepository = {
       }
     }
 
-    // Safely delete corresponding payments for these late records only
+    // Safely delete corresponding payments for these late records (or all payments if clearAll)
     let deletedPaymentsCount = 0;
-    if (deletedLateRecordIds.length > 0) {
-      const paySnapshot = await db().collection('payments').get();
-      for (const pDoc of paySnapshot.docs) {
-        const p = docToData(pDoc);
-        if (deletedLateRecordIds.includes(Number(p.late_record_id))) {
-          await db().collection('payments').doc(pDoc.id).delete();
-          deletedPaymentsCount++;
-        }
+    const paySnapshot = await db().collection('payments').get();
+    for (const pDoc of paySnapshot.docs) {
+      const p = docToData(pDoc);
+      const isMatch = clearAll ||
+        deletedLateRecordIds.includes(Number(p.late_record_id)) ||
+        deletedLateRecordIds.includes(Number(p.lateRecordId)) ||
+        (studentId && (Number(p.student_id) === Number(studentId) || Number(p.studentId) === Number(studentId)));
+      if (isMatch) {
+        await db().collection('payments').doc(pDoc.id).delete();
+        deletedPaymentsCount++;
       }
     }
 
     return {
       deletedLateRecordsCount: deletedLateRecordIds.length,
       deletedPaymentsCount,
-      targetDate
+      targetDate: clearAll ? 'ALL' : targetDate,
+      clearAll: Boolean(clearAll)
     };
+  },
+
+  async clearAllHistoricalData() {
+    return this.resetTodayDemoRecords({ clearAll: true });
   }
 };
 
