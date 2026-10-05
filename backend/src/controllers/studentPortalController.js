@@ -98,8 +98,50 @@ const getStudentFines = async (req, res, next) => {
     const result = await lateRecordRepository.findAll({ studentId: studentProfile.id, limit: 1000 });
     const records = result.records;
 
-    const pendingFines = records.filter((r) => r.status === 'PENDING' && parseFloat(r.fine_amount || 0) > 0);
-    const paidFines = records.filter((r) => r.status === 'PAID');
+    // Fetch all payment requests and records for this student
+    const studentPayments = await paymentRepository.findAllByStudentId(studentProfile.id);
+
+    const pendingFines = records
+      .filter((r) => r.status === 'PENDING' && parseFloat(r.fine_amount || 0) > 0)
+      .map((fine) => {
+        // Find latest payment request for this fine record
+        const matching = studentPayments.filter(
+          (p) => Number(p.late_record_id || p.lateRecordId) === Number(fine.id)
+        );
+        const latest = matching[0] || null;
+
+        return {
+          ...fine,
+          paymentRequest: latest
+            ? {
+                id: latest.id,
+                paymentId: latest.paymentId || latest.id,
+                status: latest.status,
+                submittedAt: latest.submittedAt || latest.created_at,
+                verifiedAt: latest.verifiedAt,
+                verifiedBy: latest.verifiedBy,
+                rejectionReason: latest.rejectionReason
+              }
+            : null
+        };
+      });
+
+    const paidFines = records
+      .filter((r) => r.status === 'PAID')
+      .map((fine) => {
+        const paidPayment = studentPayments.find(
+          (p) =>
+            Number(p.late_record_id || p.lateRecordId) === Number(fine.id) &&
+            (p.status === 'PAID' || p.status === 'SUCCESS')
+        );
+
+        return {
+          ...fine,
+          payment_id: paidPayment ? paidPayment.id : fine.id,
+          paid_at: paidPayment ? (paidPayment.paid_at || paidPayment.verifiedAt) : fine.updated_at,
+          verifiedBy: paidPayment ? paidPayment.verifiedBy : null
+        };
+      });
 
     res.json({
       success: true,

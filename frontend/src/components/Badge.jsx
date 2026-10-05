@@ -9,7 +9,7 @@ const Badge = ({ status, text }) => {
     badgeClass = 'badge-paid';
   } else if (normalizedStatus === 'PENDING' || normalizedStatus === 'CREATED') {
     badgeClass = 'badge-pending';
-  } else if (normalizedStatus === 'FAILED' || normalizedStatus === 'INACTIVE') {
+  } else if (normalizedStatus === 'FAILED' || normalizedStatus === 'INACTIVE' || normalizedStatus === 'REJECTED') {
     badgeClass = 'badge-failed';
   } else if (normalizedStatus === 'ACTIVE') {
     badgeClass = 'badge-active';

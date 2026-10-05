@@ -1,14 +1,15 @@
 const {
   lateRecordRepository,
-  paymentRepository
+  paymentRepository,
+  studentRepository
 } = require('../db/repositories/firestoreRepository');
-const paymentService = require('../services/paymentService');
+const { format12HourTime, getIndiaTodayStr } = require('../utils/indiaTime');
 
 /**
- * Initiate a payment order for a pending late fine
- * Route: POST /api/payments/create
+ * Student submits a fine payment request after scanning dummy QR code
+ * Route: POST /api/payments/request (also supports POST /api/payments/create)
  */
-const createPaymentOrder = async (req, res, next) => {
+const submitPaymentRequest = async (req, res, next) => {
   try {
     const { lateRecordId } = req.body;
     const studentProfile = req.user.studentProfile;
@@ -16,7 +17,7 @@ const createPaymentOrder = async (req, res, next) => {
     if (!studentProfile) {
       return res.status(403).json({
         success: false,
-        message: 'Only registered students can initiate fine payments.'
+        message: 'Only registered students can submit fine payment requests.'
       });
     }
 
@@ -27,7 +28,7 @@ const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    // Verify record exists and belongs to this student
+    // Verify fine record exists in Firestore
     const record = await lateRecordRepository.findById(lateRecordId);
 
     if (!record) {
@@ -37,7 +38,7 @@ const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    // Must belong to this student
+    // Must belong to the authenticated student
     if (Number(record.student_id) !== Number(studentProfile.id)) {
       return res.status(403).json({
         success: false,
@@ -49,7 +50,7 @@ const createPaymentOrder = async (req, res, next) => {
     if (record.status === 'PAID') {
       return res.status(400).json({
         success: false,
-        message: 'This fine has already been paid.'
+        message: 'This fine has already been verified and marked as PAID.'
       });
     }
 
@@ -60,41 +61,50 @@ const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    const fineAmount = parseFloat(record.fine_amount);
-
-    // Call payment service to create gateway order
-    const order = await paymentService.createOrder(record.id, studentProfile.id, fineAmount);
-
-    // Record the initiated payment in payments collection
-    await paymentRepository.create({
-      late_record_id: record.id,
-      student_id: studentProfile.id,
-      amount: fineAmount,
-      payment_gateway: 'RAZORPAY',
-      gateway_order_id: order.orderId,
-      status: 'CREATED'
-    });
-
-    // If in test mode, return demo credentials for test sandbox checkout
-    let testCredentials = null;
-    if (order.mode === 'test') {
-      const mockPaymentId = `pay_mock_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
-      const testSig = paymentService.generateTestSignature(order.orderId, mockPaymentId);
-      testCredentials = {
-        mockPaymentId,
-        testSignature: testSig
-      };
+    // DUPLICATE PROTECTION: Check if an active PENDING request already exists for this fine
+    const existingPending = await paymentRepository.findPendingByLateRecordId(record.id);
+    if (existingPending) {
+      return res.status(409).json({
+        success: false,
+        message: 'Payment request is already pending staff verification.',
+        isPending: true,
+        payment: existingPending
+      });
     }
+
+    const now = new Date().toISOString();
+    const fineAmount = parseFloat(record.fine_amount).toFixed(2);
+
+    // SECURITY: Status is STRICTLY set to 'PENDING'. Student cannot directly set 'PAID'.
+    const payment = await paymentRepository.create({
+      lateRecordId: Number(record.id),
+      studentId: Number(studentProfile.id),
+      studentName: studentProfile.name,
+      studentCode: studentProfile.student_code,
+      registerNumber: studentProfile.register_number,
+      department: studentProfile.department,
+      amount: fineAmount,
+      fineAmount: fineAmount,
+      payment_gateway: 'DEMO_QR',
+      status: 'PENDING',
+      submittedAt: now,
+      transaction_id: `DEMO_${Date.now()}`
+    });
 
     res.json({
       success: true,
-      message: 'Payment order created.',
-      order: {
-        ...order,
-        studentName: studentProfile.name,
-        studentCode: studentProfile.student_code,
-        studentEmail: req.user.email,
-        testCredentials
+      message: 'Payment request sent to staff for verification.',
+      status: 'PENDING',
+      payment: {
+        id: payment.id,
+        paymentId: payment.id,
+        studentId: payment.student_id,
+        studentName: payment.student_name,
+        studentCode: payment.student_code,
+        lateRecordId: payment.late_record_id,
+        fineAmount: payment.amount,
+        status: 'PENDING',
+        submittedAt: payment.submittedAt || now
       }
     });
   } catch (error) {
@@ -103,96 +113,140 @@ const createPaymentOrder = async (req, res, next) => {
 };
 
 /**
- * Verify payment signature from gateway and update fine status to PAID
- * Route: POST /api/payments/verify
+ * Get all payment verification requests (Staff & Admin)
+ * Route: GET /api/payments/requests
  */
-const verifyPayment = async (req, res, next) => {
-  const { lateRecordId, orderId, paymentId, signature } = req.body;
-  const studentProfile = req.user.studentProfile;
-
-  if (!lateRecordId || !orderId || !paymentId || !signature) {
-    return res.status(400).json({
-      success: false,
-      message: 'Payment verification failed: Missing required verification parameters.'
-    });
-  }
-
-  // 1. Backend verifies cryptographic signature
-  const isValid = paymentService.verifyPaymentSignature({
-    orderId,
-    paymentId,
-    signature
-  });
-
-  if (!isValid) {
-    // Record failure in payments collection
-    const existingPayment = await paymentRepository.findByOrderId(orderId);
-    if (existingPayment) {
-      await paymentRepository.update(existingPayment.id, { status: 'FAILED' });
-    }
-
-    return res.status(400).json({
-      success: false,
-      message: 'Payment signature verification failed. Fine remains unpaid.'
-    });
-  }
-
-  // 2. Perform database updates in Firestore
+const getPaymentRequests = async (req, res, next) => {
   try {
-    const fineRecord = await lateRecordRepository.findById(lateRecordId);
+    const { status, search } = req.query;
+    const requests = await paymentRepository.findAllRequests({ status, search });
 
-    if (!fineRecord) {
-      return res.status(404).json({ success: false, message: 'Late record not found.' });
+    res.json({
+      success: true,
+      count: requests.length,
+      requests
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Staff accepts and verifies a payment request
+ * Route: POST /api/payments/:id/verify
+ */
+const verifyPaymentRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const staffUser = req.user;
+
+    // Authorization check: Staff or Admin only
+    if (staffUser.role !== 'STAFF' && staffUser.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: Only college staff or administrators can verify payment requests.'
+      });
     }
 
-    // Authorization check
-    if (studentProfile && Number(fineRecord.student_id) !== Number(studentProfile.id)) {
-      return res.status(403).json({ success: false, message: 'Unauthorized payment attempt.' });
+    const payment = await paymentRepository.findById(id);
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment request not found.'
+      });
     }
 
-    if (fineRecord.status === 'PAID') {
-      return res.status(400).json({ success: false, message: 'This fine has already been marked as PAID.' });
+    if (payment.status === 'PAID') {
+      return res.status(400).json({
+        success: false,
+        message: 'This payment request has already been verified and marked as PAID.'
+      });
     }
 
     const now = new Date().toISOString();
+    const staffName = staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
 
-    // Update payment record to SUCCESS
-    const existingPayment = await paymentRepository.findByOrderId(orderId);
-    let savedPayment;
+    // 1. Update Payment Record to PAID
+    const updatedPayment = await paymentRepository.update(payment.id, {
+      status: 'PAID',
+      verifiedAt: now,
+      verifiedBy: staffName,
+      paid_at: now
+    });
 
-    if (existingPayment) {
-      savedPayment = await paymentRepository.update(existingPayment.id, {
-        transaction_id: paymentId,
-        gateway_signature: signature,
-        status: 'SUCCESS',
-        paid_at: now
-      });
-    } else {
-      savedPayment = await paymentRepository.create({
-        late_record_id: Number(lateRecordId),
-        student_id: Number(fineRecord.student_id),
-        amount: fineRecord.fine_amount,
-        payment_gateway: 'RAZORPAY',
-        transaction_id: paymentId,
-        gateway_order_id: orderId,
-        gateway_signature: signature,
-        status: 'SUCCESS',
-        paid_at: now
-      });
-    }
-
-    // Update late_record status to PAID
-    await lateRecordRepository.update(lateRecordId, {
-      status: 'PAID'
+    // 2. Update Late Record to PAID
+    await lateRecordRepository.update(payment.late_record_id || payment.lateRecordId, {
+      status: 'PAID',
+      updated_at: now
     });
 
     res.json({
       success: true,
-      message: 'Payment verified and confirmed successfully!',
-      paymentId: savedPayment.id,
-      transactionId: paymentId,
-      paidAt: savedPayment.paid_at || now,
-      status: 'PAID'
+      message: `Payment of ₹${payment.amount || payment.fineAmount} for ${payment.student_name || payment.studentName} verified and confirmed!`,
+      status: 'PAID',
+      payment: updatedPayment
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Staff rejects a payment request
+ * Route: POST /api/payments/:id/reject
+ */
+const rejectPaymentRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const staffUser = req.user;
+
+    // Authorization check: Staff or Admin only
+    if (staffUser.role !== 'STAFF' && staffUser.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: Only college staff or administrators can reject payment requests.'
+      });
+    }
+
+    const payment = await paymentRepository.findById(id);
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment request not found.'
+      });
+    }
+
+    if (payment.status === 'PAID') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot reject an already verified and paid fine.'
+      });
+    }
+
+    const now = new Date().toISOString();
+    const staffName = staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
+    const rejectionReason = (reason && reason.trim()) || 'Payment verification rejected by staff.';
+
+    // Update payment record to REJECTED
+    const updatedPayment = await paymentRepository.update(payment.id, {
+      status: 'REJECTED',
+      verifiedAt: now,
+      verifiedBy: staffName,
+      rejectionReason
+    });
+
+    // Ensure late record remains PENDING
+    await lateRecordRepository.update(payment.late_record_id || payment.lateRecordId, {
+      status: 'PENDING',
+      updated_at: now
+    });
+
+    res.json({
+      success: true,
+      message: 'Payment request rejected.',
+      status: 'REJECTED',
+      payment: updatedPayment
     });
   } catch (error) {
     next(error);
@@ -211,7 +265,15 @@ const getPaymentReceipt = async (req, res, next) => {
     if (!receipt) {
       return res.status(404).json({
         success: false,
-        message: 'Payment receipt not found.'
+        message: 'Payment receipt not found or not yet verified as PAID.'
+      });
+    }
+
+    // Receipt must become available ONLY after status === PAID
+    if (receipt.payment_status !== 'PAID' && receipt.payment_status !== 'SUCCESS') {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt is available only after payment has been verified and marked as PAID.'
       });
     }
 
@@ -235,7 +297,10 @@ const getPaymentReceipt = async (req, res, next) => {
 };
 
 module.exports = {
-  createPaymentOrder,
-  verifyPayment,
+  submitPaymentRequest,
+  createPaymentOrder: submitPaymentRequest, // Compatibility alias
+  getPaymentRequests,
+  verifyPaymentRequest,
+  rejectPaymentRequest,
   getPaymentReceipt
 };

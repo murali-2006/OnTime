@@ -608,22 +608,63 @@ const paymentRepository = {
     return docToData(snapshot.docs[0]);
   },
 
+  async findPendingByLateRecordId(lateRecordId) {
+    const snapshot = await db().collection('payments').get();
+    let found = null;
+    snapshot.forEach((doc) => {
+      const p = docToData(doc);
+      if (
+        (Number(p.late_record_id) === Number(lateRecordId) || Number(p.lateRecordId) === Number(lateRecordId)) &&
+        p.status === 'PENDING'
+      ) {
+        found = p;
+      }
+    });
+    return found;
+  },
+
+  async findAllByStudentId(studentId) {
+    const snapshot = await db().collection('payments').get();
+    const list = [];
+    snapshot.forEach((doc) => {
+      const p = docToData(doc);
+      if (Number(p.student_id) === Number(studentId) || Number(p.studentId) === Number(studentId)) {
+        list.push(p);
+      }
+    });
+    list.sort((a, b) => (b.submittedAt || b.created_at || '').localeCompare(a.submittedAt || a.created_at || ''));
+    return list;
+  },
+
   async create(data) {
     const nextId = await getNextId('payments');
     const now = new Date().toISOString();
+    const fineAmt = parseFloat(data.amount || data.fineAmount || 0).toFixed(2);
     const payment = {
       id: nextId,
+      paymentId: nextId,
       late_record_id: Number(data.late_record_id || data.lateRecordId),
+      lateRecordId: Number(data.late_record_id || data.lateRecordId),
       student_id: Number(data.student_id || data.studentId),
-      amount: parseFloat(data.amount).toFixed(2),
-      payment_gateway: data.payment_gateway || 'RAZORPAY',
-      transaction_id: data.transaction_id || null,
-      gateway_order_id: data.gateway_order_id || data.orderId,
-      gateway_signature: data.gateway_signature || null,
-      status: data.status || 'CREATED',
-      paid_at: data.paid_at || null,
+      studentId: Number(data.student_id || data.studentId),
+      student_name: data.student_name || data.studentName || '',
+      studentName: data.student_name || data.studentName || '',
+      student_code: data.student_code || data.studentCode || '',
+      studentCode: data.student_code || data.studentCode || '',
+      register_number: data.register_number || data.registerNumber || '',
+      department: data.department || '',
+      amount: fineAmt,
+      fineAmount: fineAmt,
+      payment_gateway: data.payment_gateway || 'DEMO_QR',
+      transaction_id: data.transaction_id || `DEMO_PAY_${Date.now()}`,
+      gateway_order_id: data.gateway_order_id || data.orderId || `ord_demo_${Date.now()}`,
+      status: data.status || 'PENDING',
+      submittedAt: data.submittedAt || now,
       created_at: now,
-      updated_at: now
+      updated_at: now,
+      verifiedAt: data.verifiedAt || null,
+      verifiedBy: data.verifiedBy || null,
+      rejectionReason: data.rejectionReason || null
     };
 
     await db().collection('payments').doc(String(nextId)).set(payment);
@@ -643,39 +684,55 @@ const paymentRepository = {
       const p = docToData(doc);
       if (
         String(p.id) === String(identifier) ||
+        String(p.paymentId) === String(identifier) ||
         String(p.late_record_id) === String(identifier) ||
+        String(p.lateRecordId) === String(identifier) ||
         String(p.transaction_id) === String(identifier)
       ) {
-        payment = p;
+        // Prioritize PAID payments if multiple attempts exist
+        if (!payment || p.status === 'PAID') {
+          payment = p;
+        }
       }
     });
 
     if (!payment) return null;
 
-    const lateRecord = await lateRecordRepository.findById(payment.late_record_id);
-    const student = await studentRepository.findById(payment.student_id);
+    // Receipt must become available ONLY after status === PAID
+    if (payment.status !== 'PAID' && payment.status !== 'SUCCESS') {
+      return null;
+    }
+
+    const lateRecord = await lateRecordRepository.findById(payment.late_record_id || payment.lateRecordId);
+    const student = await studentRepository.findById(payment.student_id || payment.studentId);
 
     return {
       payment_id: payment.id,
+      paymentId: payment.id,
       transaction_id: payment.transaction_id,
       gateway_order_id: payment.gateway_order_id,
-      amount: payment.amount,
+      amount: payment.amount || payment.fineAmount,
+      fineAmount: payment.amount || payment.fineAmount,
       payment_gateway: payment.payment_gateway,
       payment_status: payment.status,
-      paid_at: payment.paid_at,
+      status: payment.status,
+      paid_at: payment.paid_at || payment.verifiedAt,
+      submittedAt: payment.submittedAt,
+      verifiedAt: payment.verifiedAt,
+      verifiedBy: payment.verifiedBy,
       payment_created_at: payment.created_at,
-      late_record_id: lateRecord ? lateRecord.id : payment.late_record_id,
+      late_record_id: lateRecord ? lateRecord.id : (payment.late_record_id || payment.lateRecordId),
       late_date: lateRecord ? lateRecord.date : null,
       reporting_time: lateRecord ? lateRecord.reporting_time : null,
       arrival_time: lateRecord ? lateRecord.arrival_time : null,
       late_minutes: lateRecord ? lateRecord.late_minutes : 0,
       fine_amount: lateRecord ? lateRecord.fine_amount : payment.amount,
       fine_status: lateRecord ? lateRecord.status : 'PAID',
-      student_id: student ? student.id : payment.student_id,
-      student_code: student ? student.student_code : '',
-      student_name: student ? student.name : '',
-      register_number: student ? student.register_number : '',
-      department: student ? student.department : '',
+      student_id: student ? student.id : (payment.student_id || payment.studentId),
+      student_code: student ? student.student_code : (payment.student_code || payment.studentCode),
+      student_name: student ? student.name : (payment.student_name || payment.studentName),
+      register_number: student ? student.register_number : (payment.register_number || ''),
+      department: student ? student.department : (payment.department || ''),
       year: student ? student.year : '',
       student_email: student ? student.email : '',
       student_phone: student ? student.phone : ''
@@ -699,14 +756,17 @@ const paymentRepository = {
     });
 
     payments = payments.map((p) => {
-      const s = studentsMap[p.student_id];
-      const lr = lateMap[p.late_record_id];
+      const s = studentsMap[p.student_id || p.studentId];
+      const lr = lateMap[p.late_record_id || p.lateRecordId];
       return {
         ...p,
-        student_code: s ? s.student_code : '',
-        student_name: s ? s.name : '',
-        register_number: s ? s.register_number : '',
-        department: s ? s.department : '',
+        student_code: s ? s.student_code : (p.student_code || p.studentCode || ''),
+        studentCode: s ? s.student_code : (p.student_code || p.studentCode || ''),
+        student_name: s ? s.name : (p.student_name || p.studentName || ''),
+        studentName: s ? s.name : (p.student_name || p.studentName || ''),
+        register_number: s ? s.register_number : (p.register_number || ''),
+        registerNumber: s ? s.register_number : (p.register_number || ''),
+        department: s ? s.department : (p.department || ''),
         late_date: lr ? (lr.date.includes('T') ? lr.date.split('T')[0] : lr.date) : '',
         late_minutes: lr ? lr.late_minutes : 0
       };
@@ -725,8 +785,12 @@ const paymentRepository = {
       );
     }
 
-    payments.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    payments.sort((a, b) => (b.submittedAt || b.created_at || '').localeCompare(a.submittedAt || a.created_at || ''));
     return payments;
+  },
+
+  async findAllRequests({ status } = {}) {
+    return await this.findAll({ status });
   },
 
   async deleteByStudentId(studentId) {

@@ -8,9 +8,9 @@ import {
   AlertCircle,
   Receipt,
   ShieldCheck,
-  Lock,
-  ArrowRight,
-  QrCode
+  QrCode,
+  Send,
+  XCircle
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
@@ -27,9 +27,8 @@ const StudentFines = () => {
   // Payment Checkout Modal State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedFine, setSelectedFine] = useState(null);
-  const [paymentOrder, setPaymentOrder] = useState(null);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentSuccessData, setPaymentSuccessData] = useState(null);
+  const [paymentPendingData, setPaymentPendingData] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -52,57 +51,49 @@ const StudentFines = () => {
     fetchFines();
   }, []);
 
-  // 1. Initiate Payment Order
-  const handleInitiatePayment = async (fine) => {
+  // 1. Open Payment Modal
+  const handleInitiatePayment = (fine) => {
     setSelectedFine(fine);
     setPaymentError(null);
-    setPaymentSuccessData(null);
-    setProcessingPayment(true);
-    setIsPaymentModalOpen(true);
 
-    try {
-      const res = await api.post('/payments/create', { lateRecordId: fine.id });
-      if (res.success && res.order) {
-        setPaymentOrder(res.order);
-      }
-    } catch (err) {
-      setPaymentError(err.message || 'Unable to initiate payment gateway order.');
-    } finally {
-      setProcessingPayment(false);
+    // If an active PENDING request already exists for this fine, show pending status view
+    if (fine.paymentRequest && fine.paymentRequest.status === 'PENDING') {
+      setPaymentPendingData(fine.paymentRequest);
+    } else {
+      setPaymentPendingData(null);
     }
+
+    setIsPaymentModalOpen(true);
   };
 
-  // 2. Authorize and Complete Verified Payment
+  // 2. Submit "I Have Paid" Verification Request
   const handleCompletePayment = async () => {
-    if (!paymentOrder || !selectedFine) return;
+    if (!selectedFine) return;
+
+    // Duplicate check client-side
+    if (selectedFine.paymentRequest && selectedFine.paymentRequest.status === 'PENDING') {
+      setPaymentError('Payment request is already pending staff verification.');
+      return;
+    }
+
     setProcessingPayment(true);
     setPaymentError(null);
 
     try {
-      // In production Razorpay flow, the Razorpay modal popups and returns { razorpay_order_id, razorpay_payment_id, razorpay_signature }
-      // In sandbox/test mode, the test order includes valid signed test tokens
-      const paymentId = paymentOrder.testCredentials
-        ? paymentOrder.testCredentials.mockPaymentId
-        : `pay_${Date.now()}`;
-      const signature = paymentOrder.testCredentials
-        ? paymentOrder.testCredentials.testSignature
-        : 'sig_mock_signature';
-
-      // Backend verification is mandatory:
-      const verifyRes = await api.post('/payments/verify', {
-        lateRecordId: selectedFine.id,
-        orderId: paymentOrder.orderId,
-        paymentId,
-        signature
+      const res = await api.post('/payments/request', {
+        lateRecordId: selectedFine.id
       });
 
-      if (verifyRes.success) {
-        setPaymentSuccessData(verifyRes);
-        setToastMessage({ message: 'Payment verified and confirmed!', type: 'success' });
-        fetchFines(); // Refresh both lists
+      if (res.success && res.payment) {
+        setPaymentPendingData(res.payment);
+        setToastMessage({
+          message: 'Payment request sent to staff for verification.',
+          type: 'success'
+        });
+        fetchFines(); // Refresh fines list
       }
     } catch (err) {
-      setPaymentError(err.message || 'Payment verification failed.');
+      setPaymentError(err.message || 'Failed to submit payment request.');
     } finally {
       setProcessingPayment(false);
     }
@@ -148,7 +139,7 @@ const StudentFines = () => {
                 <th>Arrival Time</th>
                 <th>Late Duration</th>
                 <th>Fine Amount</th>
-                <th>Status</th>
+                <th>Payment Status</th>
                 <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
@@ -160,33 +151,67 @@ const StudentFines = () => {
                   </td>
                 </tr>
               ) : pendingFines.length > 0 ? (
-                pendingFines.map((fine) => (
-                  <tr key={fine.id}>
-                    <td style={{ fontWeight: 600 }}>{fine.date ? fine.date.split('T')[0] : ''}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{formatISTTime(fine.reporting_time)}</td>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatISTTime(fine.arrival_time)}</td>
-                    <td>
-                      <span style={{ color: '#f59e0b', fontWeight: 600 }}>
-                        {fine.late_minutes} minutes
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 800, fontSize: '1.1rem', color: '#ef4444' }}>
-                      ₹{parseFloat(fine.fine_amount).toFixed(2)}
-                    </td>
-                    <td>
-                      <Badge status={fine.status} />
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={() => handleInitiatePayment(fine)}
-                      >
-                        <CreditCard size={14} /> Pay Now
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                pendingFines.map((fine) => {
+                  const reqStatus = fine.paymentRequest?.status;
+                  const isPendingVerification = reqStatus === 'PENDING';
+                  const isRejected = reqStatus === 'REJECTED';
+
+                  return (
+                    <tr key={fine.id}>
+                      <td style={{ fontWeight: 600 }}>{fine.date ? fine.date.split('T')[0] : ''}</td>
+                      <td style={{ fontFamily: 'monospace' }}>{formatISTTime(fine.reporting_time)}</td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatISTTime(fine.arrival_time)}</td>
+                      <td>
+                        <span style={{ color: '#f59e0b', fontWeight: 600 }}>
+                          {fine.late_minutes} minutes
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 800, fontSize: '1.1rem', color: '#ef4444' }}>
+                        ₹{parseFloat(fine.fine_amount).toFixed(2)}
+                      </td>
+                      <td>
+                        {isPendingVerification ? (
+                          <div>
+                            <Badge status="PENDING" text="PENDING" />
+                            <div style={{ fontSize: '0.72rem', color: '#f59e0b', marginTop: '0.2rem', fontWeight: 500 }}>
+                              Waiting for staff verification
+                            </div>
+                          </div>
+                        ) : isRejected ? (
+                          <div>
+                            <Badge status="REJECTED" text="REJECTED" />
+                            <div style={{ fontSize: '0.72rem', color: '#ef4444', marginTop: '0.2rem', fontWeight: 500 }}>
+                              Payment request rejected
+                            </div>
+                          </div>
+                        ) : (
+                          <Badge status={fine.status} />
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        {isPendingVerification ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleInitiatePayment(fine)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                          >
+                            <Clock size={14} color="#f59e0b" /> View Request
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => handleInitiatePayment(fine)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                          >
+                            <CreditCard size={14} /> Pay Fine
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)' }}>
@@ -221,7 +246,7 @@ const StudentFines = () => {
                 <th>Date</th>
                 <th>Late Duration</th>
                 <th>Amount Paid</th>
-                <th>Transaction ID</th>
+                <th>Payment ID</th>
                 <th>Payment Date</th>
                 <th>Status</th>
                 <th style={{ textAlign: 'right' }}>Receipt</th>
@@ -243,7 +268,7 @@ const StudentFines = () => {
                       ₹{parseFloat(paid.fine_amount).toFixed(2)}
                     </td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {paid.transaction_id || 'VERIFIED'}
+                      {paid.payment_id || paid.transaction_id || 'VERIFIED'}
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {paid.paid_at ? formatISTDateTime(paid.paid_at) : 'Paid'}
@@ -274,44 +299,81 @@ const StudentFines = () => {
         </div>
       </div>
 
-      {/* Online Payment Gateway Checkout Modal */}
+      {/* Payment Popup Modal */}
       <Modal
         isOpen={isPaymentModalOpen}
         onClose={() => !processingPayment && setIsPaymentModalOpen(false)}
-        title="College Late Fine Online Payment"
+        title="College Late Fine Payment"
         maxWidth="500px"
       >
         <div>
-          {paymentSuccessData ? (
+          {paymentPendingData ? (
+            /* Staff Verification Pending State Screen */
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <div style={{
                 width: 60,
                 height: 60,
                 borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.2)',
+                background: 'rgba(245, 158, 11, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto'
               }}>
-                <CheckCircle2 size={36} color="#10b981" />
+                <Clock size={36} color="#f59e0b" />
               </div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>Payment Successful!</h3>
+              <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Payment Request Submitted
+              </h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-                Your late fine has been verified and cleared by the backend.
+                Payment request sent to staff for verification.
               </p>
-              <div style={{ background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1rem', borderRadius: '10px', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
-                <div>Transaction ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-main)' }}>{paymentSuccessData.transactionId}</strong></div>
-                <div>Status: <strong style={{ color: '#10b981' }}>PAID</strong></div>
+
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid var(--border-subtle)',
+                padding: '1.1rem',
+                borderRadius: '10px',
+                textAlign: 'left',
+                marginBottom: '1.5rem',
+                fontSize: '0.85rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Payment ID:</span>
+                  <strong style={{ fontFamily: 'monospace', color: 'var(--text-main)' }}>
+                    {paymentPendingData.paymentId || paymentPendingData.id}
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Fine Amount:</span>
+                  <strong style={{ color: '#ef4444' }}>
+                    ₹{parseFloat(selectedFine?.fine_amount || paymentPendingData.fineAmount || 0).toFixed(2)}
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+                  <span className="badge badge-pending">PENDING</span>
+                </div>
+                <div style={{
+                  borderTop: '1px solid var(--border-subtle)',
+                  paddingTop: '0.65rem',
+                  marginTop: '0.65rem',
+                  fontSize: '0.8rem',
+                  color: '#b45309',
+                  background: '#fef3c7',
+                  padding: '0.65rem',
+                  borderRadius: '6px',
+                  fontWeight: 500
+                }}>
+                  Payment submitted. Waiting for staff verification.
+                  <br />
+                  <span style={{ fontSize: '0.75rem', color: '#92400e' }}>
+                    Your official receipt will be generated immediately once staff approves.
+                  </span>
+                </div>
               </div>
+
               <div className="modal-actions" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-                <Link
-                  to={`/student/receipt/${paymentSuccessData.paymentId}`}
-                  className="btn btn-primary"
-                  onClick={() => setIsPaymentModalOpen(false)}
-                >
-                  <Receipt size={16} /> Open Official Receipt
-                </Link>
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -322,16 +384,53 @@ const StudentFines = () => {
               </div>
             </div>
           ) : (
+            /* Student Payment Flow Screen */
             <div>
               {paymentError && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem'
+                }}>
                   <AlertCircle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#dc2626' }} />
                   {paymentError}
                 </div>
               )}
 
+              {/* Show Rejection Banner if previously rejected */}
+              {selectedFine?.paymentRequest?.status === 'REJECTED' && (
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #f87171',
+                  color: '#991b1b',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    <XCircle size={16} color="#dc2626" /> Payment request rejected.
+                  </div>
+                  <div>
+                    {selectedFine.paymentRequest.rejectionReason
+                      ? `Reason: ${selectedFine.paymentRequest.rejectionReason}`
+                      : 'Please scan the QR code and submit a new verification request.'}
+                  </div>
+                </div>
+              )}
+
               {/* Order Summary */}
-              <div style={{ background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid var(--border-subtle)',
+                padding: '1.25rem',
+                borderRadius: '10px',
+                marginBottom: '1.25rem'
+              }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Fine Reference:</span>
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Record #{selectedFine?.id}</span>
@@ -344,8 +443,14 @@ const StudentFines = () => {
                   <span style={{ color: 'var(--text-muted)' }}>Late Duration:</span>
                   <span style={{ color: '#f59e0b', fontWeight: 600 }}>{selectedFine?.late_minutes} minutes</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Total Amount:</span>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid var(--border-subtle)',
+                  paddingTop: '0.75rem',
+                  marginTop: '0.5rem'
+                }}>
+                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Fine Amount:</span>
                   <span style={{ fontWeight: 800, fontSize: '1.35rem', color: '#10b981' }}>
                     ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}
                   </span>
@@ -397,16 +502,30 @@ const StudentFines = () => {
                   <DummyQRCode size={140} />
                 </div>
 
-                <p style={{ margin: '0.65rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Demo QR Code • Click <strong>Pay ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}</strong> below to confirm
+                <p style={{ margin: '0.65rem 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                  Scan QR to complete payment
+                </p>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Demonstration QR Code • Scan using camera/scanner, then click below
                 </p>
               </div>
 
-              {/* Security & Gateway Notice */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {/* Security & Verification Notice */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'rgba(37,99,235,0.06)',
+                border: '1px solid rgba(37,99,235,0.15)',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                marginBottom: '1.5rem',
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)'
+              }}>
                 <ShieldCheck size={20} color="var(--primary-500)" style={{ flexShrink: 0 }} />
                 <span>
-                  Secured with 256-bit SSL encryption. All transactions are cryptographically verified by the backend fine engine.
+                  After clicking "I Have Paid", your request will be verified by staff before the fine is marked as PAID and your official receipt is issued.
                 </span>
               </div>
 
@@ -424,11 +543,11 @@ const StudentFines = () => {
                   type="button"
                   className="btn btn-primary btn-lg"
                   onClick={handleCompletePayment}
-                  disabled={processingPayment || !paymentOrder}
-                  style={{ minWidth: '180px' }}
+                  disabled={processingPayment || selectedFine?.paymentRequest?.status === 'PENDING'}
+                  style={{ minWidth: '160px' }}
                 >
-                  <Lock size={16} />
-                  {processingPayment ? 'Verifying Signature...' : `Pay ₹${parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}`}
+                  <Send size={16} />
+                  {processingPayment ? 'Submitting...' : 'I Have Paid'}
                 </button>
               </div>
             </div>

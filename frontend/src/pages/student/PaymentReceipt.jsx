@@ -197,9 +197,10 @@ const PaymentReceipt = () => {
           </div>
 
           <div style={{ fontSize: '0.8rem', color: '#166534', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <div>Transaction Ref ID: <strong style={{ fontFamily: 'monospace' }}>{receipt.transaction_id || 'TXN_GATEWAY_SUCCESS'}</strong></div>
-            <div>Payment Gateway: <strong>{receipt.payment_gateway || 'RAZORPAY'}</strong></div>
-            <div>Settlement Timestamp: <strong>{formatISTDateTime(receipt.paid_at || new Date())}</strong></div>
+            <div>Payment ID: <strong style={{ fontFamily: 'monospace' }}>{receipt.payment_id || receipt.transaction_id}</strong></div>
+            <div>Payment Mode: <strong>{receipt.payment_gateway || 'UPI QR (Staff Verified)'}</strong></div>
+            {receipt.verified_by && <div>Verified By: <strong>{receipt.verified_by}</strong></div>}
+            <div>Verification Timestamp: <strong>{formatISTDateTime(receipt.paid_at || new Date())}</strong></div>
           </div>
         </div>
 
