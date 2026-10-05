@@ -133,7 +133,7 @@ const PaymentReceipt = () => {
         </div>
 
         {/* Student Identification Information */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', background: '#f9fafb', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.75rem', border: '1px solid #f3f4f6' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', background: '#f9fafb', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.75rem', border: '1px solid #f3f4f6' }}>
           <div>
             <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>Student Full Name</span>
             <p style={{ fontWeight: 700, fontSize: '1.05rem', color: '#111827' }}>{receipt.student_name}</p>
@@ -199,7 +199,7 @@ const PaymentReceipt = () => {
           <div style={{ fontSize: '0.8rem', color: '#166534', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <div>Payment ID: <strong style={{ fontFamily: 'monospace' }}>{receipt.payment_id || receipt.transaction_id}</strong></div>
             <div>Payment Mode: <strong>{receipt.payment_gateway || 'UPI QR (Staff Verified)'}</strong></div>
-            {receipt.verified_by && <div>Verified By: <strong>{receipt.verified_by}</strong></div>}
+            {(receipt.verifiedBy || receipt.verified_by) && <div>Verified By: <strong>{receipt.verifiedBy || receipt.verified_by}</strong></div>}
             <div>Verification Timestamp: <strong>{formatISTDateTime(receipt.paid_at || new Date())}</strong></div>
           </div>
         </div>

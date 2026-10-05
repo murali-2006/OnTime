@@ -78,7 +78,8 @@ const StudentPayments = () => {
 
       {/* Payment Records Table */}
       <div className="card">
-        <div className="table-container">
+        {/* Desktop Table View */}
+        <div className="table-container desktop-only-table">
           <table>
             <thead>
               <tr>
@@ -139,6 +140,57 @@ const StudentPayments = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="mobile-cards-container">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+              Loading your payment transactions...
+            </div>
+          ) : filteredPayments.length > 0 ? (
+            filteredPayments.map((p) => (
+              <div key={p.id} className="mobile-item-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                      {p.date ? p.date.split('T')[0] : 'Payment Record'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                      {p.late_minutes} min late • {p.paid_at ? formatISTDateTime(p.paid_at) : 'Completed'}
+                    </div>
+                    <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--primary-400)', marginTop: '0.15rem' }}>
+                      Txn: {p.transaction_id || 'SUCCESS'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#10b981' }}>
+                      ₹{parseFloat(p.fine_amount).toFixed(2)}
+                    </div>
+                    <div style={{ marginTop: '0.35rem' }}>
+                      <Badge status="PAID" />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.65rem' }}>
+                  <Link
+                    to={`/student/receipt/${p.payment_id || p.id}`}
+                    className="btn btn-secondary btn-sm"
+                    style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                  >
+                    <Receipt size={14} /> View Official Receipt
+                  </Link>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>
+              <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 0.5rem auto' }} />
+              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>No Payment Records Found</div>
+              <div style={{ fontSize: '0.8rem' }}>You have not made any fine payments yet.</div>
+            </div>
+          )}
         </div>
       </div>
     </div>

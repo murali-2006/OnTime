@@ -42,7 +42,7 @@ const DEMO_PATTERN = [
   '11111110010110101110101'
 ];
 
-const DummyQRCode = ({ size = 150 }) => {
+const DummyQRCode = ({ size = 140, className = '' }) => {
   // Build cells from the 25x25 matrix
   const cells = [];
   const matrixSize = 25;
@@ -112,10 +112,14 @@ const DummyQRCode = ({ size = 150 }) => {
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
       width={size}
       height={size}
+      className={className}
       style={{
         display: 'block',
+        width: `${size}px`,
+        height: `${size}px`,
         maxWidth: '100%',
-        height: 'auto',
+        aspectRatio: '1 / 1',
+        flexShrink: 0,
         borderRadius: '6px'
       }}
       role="img"

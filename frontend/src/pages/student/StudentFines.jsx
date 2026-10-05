@@ -140,7 +140,8 @@ const StudentFines = () => {
           </span>
         </div>
 
-        <div className="table-container">
+        {/* Desktop Table View */}
+        <div className="table-container desktop-only-table">
           <table>
             <thead>
               <tr>
@@ -211,7 +212,7 @@ const StudentFines = () => {
                         >
                           {isPendingVerification ? (
                             <>
-                              <Clock size={14} color="#f59e0b" /> Pending Verification
+                              <Clock size={14} color="#d97706" /> Pending Verification
                             </>
                           ) : (
                             <>
@@ -237,6 +238,79 @@ const StudentFines = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Cards View */}
+        <div className="mobile-cards-container">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+              Loading fines...
+            </div>
+          ) : pendingFines.length > 0 ? (
+            pendingFines.map((fine) => {
+              const reqStatus = fine.paymentRequest?.status;
+              const isPendingVerification = reqStatus === 'PENDING';
+              const isRejected = reqStatus === 'REJECTED';
+
+              return (
+                <div key={fine.id} className="mobile-item-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                        {fine.date ? fine.date.split('T')[0] : 'Late Record'}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                        Arrival: {formatISTTime(fine.arrival_time)} ({fine.late_minutes} min late)
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#ef4444' }}>
+                        ₹{parseFloat(fine.fine_amount).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.65rem' }}>
+                    <div>
+                      {isPendingVerification ? (
+                        <span className="badge badge-pending">PENDING VERIFICATION</span>
+                      ) : isRejected ? (
+                        <span className="badge badge-rejected" style={{ background: '#fee2e2', color: '#dc2626' }}>REJECTED</span>
+                      ) : (
+                        <Badge status={fine.status} />
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className={`btn ${isPendingVerification ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleInitiatePayment(fine);
+                      }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      {isPendingVerification ? (
+                        <>
+                          <Clock size={14} color="#d97706" /> Pending
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={14} /> Pay Fine
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>
+              <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 0.5rem auto' }} />
+              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>No Pending Fines</div>
+              <div style={{ fontSize: '0.8rem' }}>Your attendance fine account is settled!</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Paid Fines History Section */}
@@ -250,7 +324,8 @@ const StudentFines = () => {
           </span>
         </div>
 
-        <div className="table-container">
+        {/* Desktop Table View */}
+        <div className="table-container desktop-only-table">
           <table>
             <thead>
               <tr>
@@ -308,6 +383,50 @@ const StudentFines = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Cards View */}
+        <div className="mobile-cards-container">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
+              Loading history...
+            </div>
+          ) : paidFines.length > 0 ? (
+            paidFines.map((paid) => (
+              <div key={paid.id} className="mobile-item-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                      {paid.date ? paid.date.split('T')[0] : 'Settled Fine'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                      {paid.late_minutes} min late • {paid.paid_at ? formatISTDateTime(paid.paid_at) : 'Paid'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#10b981' }}>
+                      ₹{parseFloat(paid.fine_amount).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.65rem' }}>
+                  <Badge status="PAID" />
+                  <Link
+                    to={`/student/receipt/${paid.payment_id || paid.id}`}
+                    className="btn btn-secondary btn-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <Receipt size={14} /> View Receipt
+                  </Link>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>
+              No payment history recorded.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Payment Popup Modal — Displays Fine Amount, Dummy QR Code, and "I Have Paid" */}
@@ -315,60 +434,60 @@ const StudentFines = () => {
         isOpen={isPaymentModalOpen}
         onClose={handleCloseModal}
         title="College Late Fine Payment"
-        maxWidth="500px"
+        maxWidth="480px"
       >
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Error Banner */}
           {paymentError && (
             <div style={{
               background: '#fef2f2',
               border: '1px solid #fecaca',
               color: '#b91c1c',
-              padding: '0.75rem',
+              padding: '0.65rem 0.85rem',
               borderRadius: '8px',
-              marginBottom: '1rem',
-              fontSize: '0.85rem'
+              marginBottom: '0.85rem',
+              fontSize: '0.825rem'
             }}>
-              <AlertCircle size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#dc2626' }} />
+              <AlertCircle size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px', color: '#dc2626' }} />
               {paymentError}
             </div>
           )}
 
-          {/* Pending Verification Notice (Shown after submission or if fine is already pending) */}
+          {/* Pending Verification Notice */}
           {paymentPendingData && (
             <div style={{
               background: '#fffbeb',
               border: '1px solid #fde68a',
               color: '#92400e',
-              padding: '0.85rem',
+              padding: '0.75rem 0.85rem',
               borderRadius: '8px',
-              marginBottom: '1.25rem',
-              fontSize: '0.85rem'
+              marginBottom: '0.85rem',
+              fontSize: '0.825rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-                <Clock size={16} color="#d97706" /> Payment request sent to staff for verification.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, marginBottom: '0.2rem' }}>
+                <Clock size={15} color="#d97706" /> Payment request sent to staff for verification.
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#b45309' }}>
-                Status: <strong>PENDING</strong> — Payment submitted. Waiting for staff verification. Official receipt will be unlocked once staff accepts the payment.
+              <div style={{ fontSize: '0.775rem', color: '#b45309', lineHeight: 1.4 }}>
+                Status: <strong>PENDING</strong> — Waiting for staff verification. Official receipt will unlock once staff accepts the payment.
               </div>
             </div>
           )}
 
-          {/* Rejection Notice (Shown if previously rejected by staff) */}
+          {/* Rejection Notice */}
           {!paymentPendingData && selectedFine?.paymentRequest?.status === 'REJECTED' && (
             <div style={{
               background: '#fef2f2',
               border: '1px solid #f87171',
               color: '#991b1b',
-              padding: '0.75rem',
+              padding: '0.65rem 0.85rem',
               borderRadius: '8px',
-              marginBottom: '1.25rem',
-              fontSize: '0.85rem'
+              marginBottom: '0.85rem',
+              fontSize: '0.825rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-                <AlertCircle size={16} color="#dc2626" /> Payment request rejected.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, marginBottom: '0.2rem' }}>
+                <AlertCircle size={15} color="#dc2626" /> Payment request rejected.
               </div>
-              <div style={{ fontSize: '0.8rem' }}>
+              <div style={{ fontSize: '0.775rem' }}>
                 {selectedFine.paymentRequest.rejectionReason
                   ? `Reason: ${selectedFine.paymentRequest.rejectionReason}`
                   : 'Please scan the dummy QR code below and submit a new payment verification request.'}
@@ -380,19 +499,19 @@ const StudentFines = () => {
           <div style={{
             background: '#f8fafc',
             border: '1px solid var(--border-subtle)',
-            padding: '1.15rem',
-            borderRadius: '10px',
-            marginBottom: '1.25rem'
+            padding: '0.85rem 1rem',
+            borderRadius: '8px',
+            marginBottom: '0.85rem'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.825rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Fine Record:</span>
               <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Record #{selectedFine?.id}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.825rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Late Incident Date:</span>
               <span style={{ color: 'var(--text-main)' }}>{selectedFine?.date ? String(selectedFine.date).split('T')[0] : ''}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.825rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Late Duration:</span>
               <span style={{ color: '#f59e0b', fontWeight: 600 }}>{selectedFine?.late_minutes} minutes</span>
             </div>
@@ -401,11 +520,11 @@ const StudentFines = () => {
               justifyContent: 'space-between',
               alignItems: 'center',
               borderTop: '1px solid var(--border-subtle)',
-              paddingTop: '0.75rem',
-              marginTop: '0.5rem'
+              paddingTop: '0.5rem',
+              marginTop: '0.35rem'
             }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Fine Amount:</span>
-              <span style={{ fontWeight: 800, fontSize: '1.35rem', color: '#10b981' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.875rem' }}>Fine Amount:</span>
+              <span style={{ fontWeight: 800, fontSize: '1.25rem', color: '#10b981' }}>
                 ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}
               </span>
             </div>
@@ -419,48 +538,52 @@ const StudentFines = () => {
               alignItems: 'center',
               background: '#f8fafc',
               border: '1px solid var(--border-subtle)',
-              borderRadius: '10px',
-              padding: '1rem',
-              marginBottom: '1.25rem',
-              textAlign: 'center'
+              borderRadius: '8px',
+              padding: '0.75rem',
+              marginBottom: '0.85rem',
+              textAlign: 'center',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.35rem',
+              gap: '0.3rem',
               background: 'rgba(37, 99, 235, 0.1)',
               color: '#2563eb',
-              padding: '0.25rem 0.75rem',
+              padding: '0.2rem 0.65rem',
               borderRadius: '9999px',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
-              marginBottom: '0.75rem',
-              letterSpacing: '0.04em'
+              marginBottom: '0.5rem',
+              letterSpacing: '0.03em'
             }}>
-              <QrCode size={14} /> Scan QR (Demo)
+              <QrCode size={13} /> Scan QR (Demo)
             </div>
 
             <div
               style={{
                 background: '#ffffff',
-                padding: '0.65rem',
+                padding: '0.5rem',
                 borderRadius: '8px',
                 border: '1px solid rgba(226, 232, 240, 0.9)',
                 boxShadow: '0 2px 6px rgba(15, 23, 42, 0.05)',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                margin: '0 auto',
+                width: 'fit-content'
               }}
             >
-              <DummyQRCode size={140} />
+              <DummyQRCode size={130} />
             </div>
 
-            <p style={{ margin: '0.65rem 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)' }}>
+            <p style={{ margin: '0.45rem 0 0 0', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Scan QR to complete payment
             </p>
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Demonstration QR Code • Scan for demonstration, then click "I Have Paid" below
+            <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+              Demonstration QR Code • Scan for demonstration, then tap "I Have Paid" below
             </p>
           </div>
 
@@ -468,18 +591,19 @@ const StudentFines = () => {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.45rem',
             background: 'rgba(37,99,235,0.06)',
             border: '1px solid rgba(37,99,235,0.15)',
-            padding: '0.75rem',
+            padding: '0.65rem 0.75rem',
             borderRadius: '8px',
-            marginBottom: '1.5rem',
-            fontSize: '0.8rem',
-            color: 'var(--text-muted)'
+            marginBottom: '1rem',
+            fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+            lineHeight: 1.35
           }}>
-            <ShieldCheck size={20} color="var(--primary-500)" style={{ flexShrink: 0 }} />
+            <ShieldCheck size={18} color="var(--primary-500)" style={{ flexShrink: 0 }} />
             <span>
-              Clicking "I Have Paid" creates a verification request for staff. Official receipt becomes available after staff verification.
+              Tapping "I Have Paid" creates a verification request for staff. Official receipt unlocks after staff verification.
             </span>
           </div>
 
@@ -499,9 +623,9 @@ const StudentFines = () => {
                 type="button"
                 className="btn btn-secondary"
                 disabled={true}
-                style={{ minWidth: '160px', opacity: 0.7, cursor: 'not-allowed' }}
+                style={{ minWidth: '150px', opacity: 0.7, cursor: 'not-allowed' }}
               >
-                <Clock size={16} color="#d97706" /> Request Pending
+                <Clock size={15} color="#d97706" /> Request Pending
               </button>
             ) : (
               <button
@@ -509,10 +633,10 @@ const StudentFines = () => {
                 className="btn btn-primary btn-lg"
                 onClick={handleCompletePayment}
                 disabled={submittingPayment || (selectedFine?.paymentRequest?.status === 'PENDING')}
-                style={{ minWidth: '160px' }}
+                style={{ minWidth: '150px' }}
               >
-                <Check size={16} />
-                {submittingPayment ? 'Submitting Request...' : 'I Have Paid'}
+                <Check size={15} />
+                {submittingPayment ? 'Submitting...' : 'I Have Paid'}
               </button>
             )}
           </div>

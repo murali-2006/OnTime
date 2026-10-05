@@ -962,6 +962,10 @@ html, body {
   border-radius: 4px;
 }
 
+.mobile-cards-container {
+  display: none;
+}
+
 /* ====================================================================
    1. DESKTOP LAYOUT (>= 768px: 1366px, 1440px, 1920px)
    Structure:
@@ -1303,32 +1307,52 @@ html, body {
   }
 
   .modal-overlay {
-    padding: 0.85rem !important;
+    padding: 0.75rem 0.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .modal-content {
     max-width: 100% !important;
     width: 100% !important;
-    max-height: calc(100vh - 1.7rem) !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: var(--radius-md) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .modal-header {
-    padding: 1rem 1.15rem !important;
+    padding: 0.85rem 1rem !important;
+    flex-shrink: 0 !important;
   }
 
   .modal-body {
-    padding: 1.15rem !important;
+    padding: 0.85rem !important;
+    max-height: calc(90dvh - 65px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
   }
 
   .modal-footer {
-    padding: 0.85rem 1.15rem !important;
+    padding: 0.75rem 1rem !important;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    flex-shrink: 0 !important;
   }
 
   .modal-actions {
     flex-direction: column-reverse !important;
     width: 100% !important;
+    gap: 0.5rem !important;
   }
 
   .modal-actions button,
@@ -1337,6 +1361,30 @@ html, body {
     width: 100% !important;
     min-width: 0 !important;
     justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+  }
+
+  /* Responsive card helpers for mobile */
+  .desktop-only-table {
+    display: none !important;
+  }
+
+  .mobile-cards-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
+  }
+
+  .mobile-item-card {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   }
 
   .scanner-viewport {

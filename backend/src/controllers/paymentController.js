@@ -164,7 +164,7 @@ const verifyPaymentRequest = async (req, res, next) => {
     }
 
     const now = new Date().toISOString();
-    const staffName = staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
+    const staffName = staffUser.staffProfile?.name || staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
 
     // 1. Update Payment Record to PAID
     const updatedPayment = await paymentRepository.update(payment.id, {
@@ -225,7 +225,7 @@ const rejectPaymentRequest = async (req, res, next) => {
     }
 
     const now = new Date().toISOString();
-    const staffName = staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
+    const staffName = staffUser.staffProfile?.name || staffUser.profile?.name || staffUser.email || 'Gate Attendance Officer';
     const rejectionReason = (reason && reason.trim()) || 'Payment verification rejected by staff.';
 
     // Update payment record to REJECTED
