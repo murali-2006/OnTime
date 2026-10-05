@@ -9,12 +9,14 @@ import {
   Receipt,
   ShieldCheck,
   Lock,
-  ArrowRight
+  ArrowRight,
+  QrCode
 } from 'lucide-react';
 import api from '../../services/api';
 import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Toast from '../../components/Toast';
+import DummyQRCode from '../../components/DummyQRCode';
 import { formatISTTime, formatISTDateTime } from '../../utils/timeUtils';
 
 const StudentFines = () => {
@@ -348,6 +350,56 @@ const StudentFines = () => {
                     ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}
                   </span>
                 </div>
+              </div>
+
+              {/* Dummy QR Code for Project Demonstration */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  background: '#f8fafc',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.25rem',
+                  textAlign: 'center'
+                }}
+              >
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  background: 'rgba(37, 99, 235, 0.1)',
+                  color: '#2563eb',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  marginBottom: '0.75rem',
+                  letterSpacing: '0.04em'
+                }}>
+                  <QrCode size={14} /> Scan QR (Demo)
+                </div>
+
+                <div
+                  style={{
+                    background: '#ffffff',
+                    padding: '0.65rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(226, 232, 240, 0.9)',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <DummyQRCode size={140} />
+                </div>
+
+                <p style={{ margin: '0.65rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Demo QR Code • Click <strong>Pay ₹{parseFloat(selectedFine?.fine_amount || 0).toFixed(2)}</strong> below to confirm
+                </p>
               </div>
 
               {/* Security & Gateway Notice */}
