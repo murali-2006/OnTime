@@ -9,7 +9,8 @@
     "migrate": "node src/db/migrateToFirestore.js",
     "seed": "node src/db/seedFirestore.js",
     "verify": "node src/verify_all.js",
-    "test:firestore": "node src/db/testFirestoreConnection.js"
+    "test:firestore": "node src/db/testFirestoreConnection.js",
+    "clear-history": "node scripts/clearHistory.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

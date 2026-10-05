@@ -34,6 +34,10 @@ const SettingsPage = () => {
   const [isDemoResetModalOpen, setIsDemoResetModalOpen] = useState(false);
   const [resettingDemo, setResettingDemo] = useState(false);
 
+  // Clear All History Modal State
+  const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
+
   // Current session auto-detected
   const currentSession = getSessionForTime(new Date());
 
@@ -120,6 +124,28 @@ const SettingsPage = () => {
       setResettingDemo(false);
     }
   };
+
+  const handleConfirmClearHistory = async () => {
+    setClearingHistory(true);
+    try {
+      const res = await api.post('/admin/clear-history');
+      if (res.success) {
+        setToastMessage({
+          message: res.message || 'All historical fine and payment records cleared successfully!',
+          type: 'success'
+        });
+        setIsClearHistoryModalOpen(false);
+      }
+    } catch (err) {
+      setToastMessage({
+        message: err.message || 'Failed to clear historical data.',
+        type: 'error'
+      });
+    } finally {
+      setClearingHistory(false);
+    }
+  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
@@ -372,14 +398,25 @@ const SettingsPage = () => {
               Use Demo Reset to safely clear only today's demo scans & test payments for presentations.
             </p>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#000', fontWeight: 700 }}
-            onClick={() => setIsDemoResetModalOpen(true)}
-          >
-            <RotateCcw size={16} /> Reset Demo Data
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ borderColor: 'rgba(239, 68, 68, 0.5)', color: '#ef4444', fontWeight: 600 }}
+              onClick={() => setIsClearHistoryModalOpen(true)}
+              title="Clear all old late/fine records and payments while preserving students and master data"
+            >
+              <RotateCcw size={16} /> Clear All History
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#000', fontWeight: 700 }}
+              onClick={() => setIsDemoResetModalOpen(true)}
+            >
+              <RotateCcw size={16} /> Reset Today's Demo Data
+            </button>
+          </div>
         </div>
       </div>
 
@@ -425,6 +462,62 @@ const SettingsPage = () => {
               style={{ background: '#d97706', borderColor: '#d97706', color: '#ffffff', fontWeight: 600 }}
             >
               {resettingDemo ? 'Resetting Demo Data...' : 'Confirm Demo Reset'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clear All Historical Fine & Payment Records Modal */}
+      <Modal
+        isOpen={isClearHistoryModalOpen}
+        onClose={() => !clearingHistory && setIsClearHistoryModalOpen(false)}
+        title="Clear All Fine & Payment History"
+        maxWidth="500px"
+      >
+        <div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '0.75rem', lineHeight: '1.5' }}>
+              Are you sure you want to clear <strong>ALL historical fine and payment records</strong> from Firestore?
+            </p>
+            <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#991b1b', marginBottom: '0.75rem' }}>
+              <strong style={{ color: '#b91c1c' }}>Target Collections to Clear:</strong>
+              <ul style={{ marginTop: '0.35rem', paddingLeft: '1.2rem', lineHeight: '1.4' }}>
+                <li><strong>late_records</strong>: All historical late scan incident records</li>
+                <li><strong>payments</strong>: All historical payment requests and transaction logs</li>
+              </ul>
+            </div>
+            <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#065f46', marginBottom: '0.75rem' }}>
+              <strong style={{ color: '#047857' }}>Strictly Preserved Master Data:</strong>
+              <ul style={{ marginTop: '0.35rem', paddingLeft: '1.2rem', lineHeight: '1.4' }}>
+                <li>✅ <strong>students</strong>: All student accounts, ID cards, barcodes, and register numbers</li>
+                <li>✅ <strong>users</strong>: All login authentication accounts</li>
+                <li>✅ <strong>staff</strong>: All staff profiles</li>
+                <li>✅ <strong>college_settings</strong>: College name and session timings</li>
+                <li>✅ <strong>fine_rules</strong>: All configured fine duration tiers</li>
+              </ul>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              After clearing, newly scanned late arrivals and new payment verification requests will work cleanly.
+            </p>
+          </div>
+
+          <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsClearHistoryModalOpen(false)}
+              disabled={clearingHistory}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleConfirmClearHistory}
+              disabled={clearingHistory}
+              style={{ background: '#dc2626', borderColor: '#dc2626', color: '#ffffff', fontWeight: 600 }}
+            >
+              {clearingHistory ? 'Clearing History...' : 'Clear All History Now'}
             </button>
           </div>
         </div>
