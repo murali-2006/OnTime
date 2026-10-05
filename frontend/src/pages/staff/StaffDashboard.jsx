@@ -5,7 +5,6 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
   RefreshCw,
   CreditCard,
   Check,
@@ -287,7 +286,7 @@ const StaffDashboard = () => {
                           </div>
                         ) : (
                           <div style={{ fontSize: '0.8rem', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <XCircle size={14} />
+                            <X size={14} />
                             <span>Rejected {req.rejectionReason ? `(${req.rejectionReason})` : ''}</span>
                           </div>
                         )}
