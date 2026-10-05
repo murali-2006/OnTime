@@ -82,9 +82,6 @@ const LoginPage = () => {
               ON<span style={{ color: 'var(--primary-600)' }}>TIME</span>
             </span>
           </Link>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>
-            Sign In to College Portal
-          </h2>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             Enter your authorized college credentials to continue
           </p>
